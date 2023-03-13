@@ -1,50 +1,41 @@
-  version: '2'
-  services:
-    zookeeper:
-      image: confluentinc/cp-zookeeper:5.3.1
-      hostname: zookeeper
-      container_name: zookeeper
-      ports:
-        - "2181:2181"
-      environment:
-        ZOOKEEPER_CLIENT_PORT: 2181
-        ZOOKEEPER_TICK_TIME: 2000
+version: '3'
 
-    broker:
-      image: confluentinc/cp-kafka:5.3.1
-      hostname: broker
-      container_name: broker
-      depends_on:
-        - zookeeper
-      ports:
-        - "9091:9091"
-      environment:
-        KAFKA_BROKER_ID: 1
-        KAFKA_BOOTSTRAP.SERVERS: 'broker:29091'
-        KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29091,PLAINTEXT_HOST://localhost:9091
-        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-        KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+services:
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
 
-    control-center:
-      image: confluentinc/cp-enterprise-control-center:5.3.1
-      hostname: control-center
-      container_name: control-center
-      depends_on:
-        - zookeeper
-        - broker
-      ports:
-        - "9021:9021"
-      environment:
-        CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29091'
-        CONTROL_CENTER_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-        CONTROL_CENTER_CONNECT_CLUSTER: 'connect:8083'
-        CONTROL_CENTER_KSQL_URL: "http://ksql-server:8088"
-        CONTROL_CENTER_KSQL_ADVERTISED_URL: "http://localhost:8088"
-        CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-        CONTROL_CENTER_REPLICATION_FACTOR: 1
-        CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
-        CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
-        CONFLUENT_METRICS_TOPIC_REPLICATION: 1
-        PORT: 9021
+  kafka:
+    image: 'bitnami/kafka:latest'
+    container_name: kafka
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+
+  kafka-manager:
+    image: "sheepkiller/kafka-manager:latest"
+    ports:
+      - "9000:9000"
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+      APPLICATION_SECRET: "letmein"
+      KAFKA_MANAGER_AUTH_ENABLED: "false"
+      KAFKA_MANAGER_AUTH_USERNAME: "admin"
+      KAFKA_MANAGER_AUTH_PASSWORD: "admin"
+    depends_on:
+      - zookeeper
+      - kafka
