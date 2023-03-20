@@ -16,3 +16,5 @@ helm upgrade --install promtail grafana/promtail --set "config.clients[0].url=ht
 ```
 helm install grafana grafana/grafana -f grafana-values.yaml
 ```
+
+TODO：將要修改的參數移到指令修改
