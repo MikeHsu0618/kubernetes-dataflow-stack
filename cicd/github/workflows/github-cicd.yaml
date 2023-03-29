@@ -1,0 +1,56 @@
+name: Build and Deploy Gatsby Site
+
+on:
+  push:
+    branches:
+      - main
+      - ci/*
+    tags:
+      - v*
+env:
+  GCS_BUCKET_NAME: secrets.BUCKET_NAME_UAT
+  GCP_SA_KEY: secrets.GCP_SA_KEY_UAT
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  copy-files-gcs:
+    name: Copy directory to GCS
+    runs-on: ubuntu-latest
+
+    # Add "id-token" with the intended permissions.
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Run install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install # will run `yarn install` command
+
+      - name: Build production bundle
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build # will run `yarn build` command
+
+      - id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ env.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Use gcloud CLI
+        run: "gsutil -m rsync -R public gs://${{ env.GCP_BUCKET_NAME }}"
