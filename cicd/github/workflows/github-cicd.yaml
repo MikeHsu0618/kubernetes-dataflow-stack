@@ -8,8 +8,8 @@ on:
     tags:
       - v*
 env:
-  GCS_BUCKET_NAME: secrets.BUCKET_NAME_UAT
-  GCP_SA_KEY: secrets.GCP_SA_KEY_UAT
+  GCS_BUCKET_NAME: ${{ secrets.BUCKET_NAME_UAT }}
+  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY_UAT }}
 
 permissions:
   id-token: write
@@ -53,4 +53,4 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0
 
       - name: Use gcloud CLI
-        run: "gsutil -m rsync -R public gs://${{ env.GCP_BUCKET_NAME }}"
+        run: "gsutil -m rsync -R --delete public gs://${{ env.GCS_BUCKET_NAME }}"
