@@ -283,7 +283,53 @@ dataDir: ""
 # customConfig -- Override Vector's default configs, if used **all** options need to be specified. This section supports
 # using helm templates to populate dynamic values. See Vector's [configuration documentation](https://vector.dev/docs/reference/configuration/)
 # for all options.
-customConfig: {}
+customConfig:
+  data_dir: /vector-data-dir
+  api:
+    address: 127.0.0.1:8686
+    enabled: true
+    playground: false
+  sinks:
+    prom_exporter:
+      address: 0.0.0.0:9090
+      inputs:
+        - host_metrics
+        - internal_metrics
+      type: prometheus_exporter
+    stdout:
+      encoding:
+        codec: json
+      inputs:
+        - internal_metrics
+      type: console
+    loki:
+      type: loki
+      inputs: ["my_source_id"]
+      endpoint: "http://loki-loki-distributed-gateway"
+      encoding:
+        codec: json
+      labels:
+        forwarder: vector
+        source: test
+  sources:
+    host_metrics:
+      filesystem:
+        devices:
+          excludes:
+            - binfmt_misc
+        filesystems:
+          excludes:
+            - binfmt_misc
+        mountPoints:
+          excludes:
+            - '*/proc/sys/fs/binfmt_misc'
+      type: host_metrics
+    internal_metrics:
+      type: internal_metrics
+    my_source_id:
+      type: demo_logs
+      format: json
+      interval: 0.01
 
 # extraVolumes -- Additional Volumes to use with Vector Pods.
 extraVolumes: []
