@@ -15,7 +15,7 @@ fullnameOverride: ""
 # Agent = DaemonSet
 # Aggregator = StatefulSet
 # Stateless-Aggregator = Deployment
-role: "Aggregator"
+role: "Stateless-Aggregator"
 
 # rollWorkload -- Add a checksum of the generated ConfigMap to workload annotations.
 rollWorkload: true
@@ -167,13 +167,13 @@ envFrom: []
 containerPorts: []
 
 # resources -- Set Vector resource requests and limits.
-resources: {}
-  # requests:
-  #   cpu: 200m
-  #   memory: 256Mi
-  # limits:
-  #   cpu: 200m
-  #   memory: 256Mi
+resources:
+   requests:
+     cpu: 200m
+     memory: 256Mi
+   limits:
+     cpu: 200m
+     memory: 256Mi
 
 # lifecycle -- Set lifecycle hooks for Vector containers.
 lifecycle: {}
@@ -283,34 +283,16 @@ dataDir: ""
 # customConfig -- Override Vector's default configs, if used **all** options need to be specified. This section supports
 # using helm templates to populate dynamic values. See Vector's [configuration documentation](https://vector.dev/docs/reference/configuration/)
 # for all options.
+# customConfig -- Override Vector's default configs, if used **all** options need to be specified. This section supports
+# using helm templates to populate dynamic values. See Vector's [configuration documentation](https://vector.dev/docs/reference/configuration/)
+# for all options.
 customConfig:
   data_dir: /vector-data-dir
   api:
     address: 127.0.0.1:8686
     enabled: true
     playground: false
-  sinks:
-    prom_exporter:
-      address: 0.0.0.0:9090
-      inputs:
-        - host_metrics
-        - internal_metrics
-      type: prometheus_exporter
-    stdout:
-      encoding:
-        codec: json
-      inputs:
-        - internal_metrics
-      type: console
-    loki:
-      type: loki
-      inputs: ["my_source_id"]
-      endpoint: "http://loki-loki-distributed-gateway"
-      encoding:
-        codec: json
-      labels:
-        forwarder: vector
-        source: test
+
   sources:
     host_metrics:
       filesystem:
@@ -326,11 +308,53 @@ customConfig:
       type: host_metrics
     internal_metrics:
       type: internal_metrics
-    my_source_id:
+    dump_logs:
       type: demo_logs
       format: json
-      interval: 0.01
+      interval: 1
+    kafka:
+      type: kafka
+      bootstrap_servers: <bootstrap_servers>:9092
+      group_id: vector-kafka-test-group
+      topics:
+        - vector-kafka-test-topics
 
+  sinks:
+    prom_exporter:
+      address: 0.0.0.0:9090
+      inputs:
+        - host_metrics
+        - internal_metrics
+      type: prometheus_exporter
+    stdout:
+      type: console
+      encoding:
+        codec: json
+      inputs:
+        - kafka
+    loki:
+      type: loki
+      inputs: ["dump_logs"]
+      endpoint: "http://loki-loki-distributed-gateway"
+      encoding:
+        codec: json
+      labels:
+        forwarder: vector
+        source: test
+    elasticsearch:
+      inputs: [ "kafka"]
+      type: elasticsearch
+      endpoints:
+        - http://<endpoints>:9200
+      api_version: auto
+      compression: gzip
+      batch:
+        max_events: 1000
+        max_size: 10485760
+      mode: bulk
+      bulk:
+        index: "test-vector-%Y-%m-%d"
+        action: index
 # extraVolumes -- Additional Volumes to use with Vector Pods.
 extraVolumes: []
 
