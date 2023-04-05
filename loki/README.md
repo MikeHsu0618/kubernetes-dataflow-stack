@@ -4,7 +4,7 @@ Loki
 
 安裝 Loki-Distributed:
 ```
-helm install -f values.yaml loki grafana/loki-distributed
+helm install -values loki-distributed-values.yaml loki grafana/loki-distributed
 
 # 設定暴露接口 external <---> gateway
 kubectl apply -f loki-service.yaml
