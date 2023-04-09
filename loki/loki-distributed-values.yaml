@@ -209,7 +209,7 @@ loki:
     configs:
     - from: 2020-09-07
       store: boltdb-shipper
-      object_store: filesystem
+      object_store: gcs
       schema: v11
       index:
         prefix: loki_index_
@@ -224,11 +224,8 @@ loki:
       cache_ttl: 168h
     filesystem:
       directory: /var/loki/chunks
-# -- Uncomment to configure each storage individually
-#   azure: {}
-#   gcs: {}
-#   s3: {}
-#   boltdb: {}
+    gcs:
+      bucket_name: prod-devops-loki-bucket
 
   # -- Structured loki configuration, takes precedence over `loki.config`, `loki.schemaConfig`, `loki.storageConfig`
   structuredConfig: {}
