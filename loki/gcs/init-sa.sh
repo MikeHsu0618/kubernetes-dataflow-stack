@@ -1,8 +1,7 @@
 export ENVIRONMENT=prod
 export PROJECT=fresh-rampart-377713
-export CLUSTER=devops
 export SA_NAME=loki-logging
-export BUCKET_NAME=$ENVIRONMENT-$CLUSTER-${SA_NAME}-bucket
+export BUCKET_NAME=$ENVIRONMENT-${SA_NAME}-bucket
 export NS=infra
 export SA=${SA_NAME}@${PROJECT}.iam.gserviceaccount.com
 export LOCATION=asia-east1
@@ -18,9 +17,8 @@ gcloud projects add-iam-policy-binding ${PROJECT} \
     --member="serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com" \
     --project ${PROJECT} \
     --role="roles/storage.objectAdmin" \
-    --condition="resource.name.startsWith('projects/_/buckets/${BUCKET_NAME}')"
 
-# add service account to cluster
+# create service account key
 gcloud iam service-accounts keys create ${SA_NAME}-sa.json --iam-account=${SA}
 
 # create kubernetes secret
