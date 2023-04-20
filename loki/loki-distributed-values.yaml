@@ -15,7 +15,7 @@ global:
 nameOverride: null
 
 # -- Overrides the chart's computed fullname
-fullnameOverride: null
+fullnameOverride: loki
 
 # -- Image pull secrets for Docker images
 imagePullSecrets: []
