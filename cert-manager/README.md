@@ -7,3 +7,4 @@ helm install \
   --version v1.11.0 \
   --set installCRDs=true
 ```
+---
