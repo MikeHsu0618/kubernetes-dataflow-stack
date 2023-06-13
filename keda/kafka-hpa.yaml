@@ -1,0 +1,18 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kafka-scaledobject
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: your-deployment
+  minReplicaCount: 1  # Optional. Default: 0
+  maxReplicaCount: 10 # Optional. Default: 100
+  triggers:
+  - type: kafka
+    metadata:
+      # Required
+      bootstrapServers: localhost:9092
+      consumerGroup: your-consumer-group
+      topic: your-topic
+      lagThreshold: "500000"
