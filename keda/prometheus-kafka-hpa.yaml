@@ -1,0 +1,20 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: prometheus-scaledobject
+  namespace: keda
+spec:
+  scaleTargetRef:
+    name: busybox
+    apiVersion: apps/v1
+    kind: Deployment
+  pollingInterval: 5 # Optional. Default: 30 seconds
+  maxReplicaCount: 10
+  minReplicaCount: 1
+  triggers:
+    - type: prometheus
+      metadata:
+        metricName: cpu_overload
+        query: sum(kubelet_http_requests_duration_seconds_count{job="kubelet"})
+        serverAddress: http://10.140.15.204:9090
+        threshold: '1'
