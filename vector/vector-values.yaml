@@ -312,12 +312,12 @@ customConfig:
       type: demo_logs
       format: json
       interval: 1
-    kafka:
-      type: kafka
-      bootstrap_servers: <bootstrap_servers>:9092
-      group_id: vector-kafka-test-group
-      topics:
-        - vector-kafka-test-topics
+#    kafka:
+#      type: kafka
+#      bootstrap_servers: <bootstrap_servers>:9092
+#      group_id: vector-kafka-test-group
+#      topics:
+#        - vector-kafka-test-topics
 
   sinks:
     prom_exporter:
@@ -326,35 +326,40 @@ customConfig:
         - host_metrics
         - internal_metrics
       type: prometheus_exporter
-    stdout:
-      type: console
-      encoding:
-        codec: json
-      inputs:
-        - kafka
+#    stdout:
+#      type: console
+#      encoding:
+#        codec: json
+#      inputs:
+#        - host_metrics
     loki:
       type: loki
       inputs: ["dump_logs"]
-      endpoint: "http://loki-loki-distributed-gateway"
+      endpoint: "http://loki-gateway.logging"
+      tenant_id: standard-cluster-1
       encoding:
         codec: json
+      auth:
+        strategy: basic
+        user: admin
+        password: admin
       labels:
         forwarder: vector
         source: test
-    elasticsearch:
-      inputs: [ "kafka"]
-      type: elasticsearch
-      endpoints:
-        - http://<endpoints>:9200
-      api_version: auto
-      compression: gzip
-      batch:
-        max_events: 1000
-        max_size: 10485760
-      mode: bulk
-      bulk:
-        index: "test-vector-%Y-%m-%d"
-        action: index
+#    elasticsearch:
+#      inputs: [ "kafka"]
+#      type: elasticsearch
+#      endpoints:
+#        - http://<endpoints>:9200
+#      api_version: auto
+#      compression: gzip
+#      batch:
+#        max_events: 1000
+#        max_size: 10485760
+#      mode: bulk
+#      bulk:
+#        index: "test-vector-%Y-%m-%d"
+#        action: index
 # extraVolumes -- Additional Volumes to use with Vector Pods.
 extraVolumes: []
 
