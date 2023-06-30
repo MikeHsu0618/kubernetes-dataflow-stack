@@ -1,0 +1,20 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: prometheus-kafka-scaledobject
+  namespace: keda
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: busybox
+  pollingInterval: 20 # Optional. Default: 30 seconds
+  minReplicaCount: 1  # Optional. Default: 0
+  maxReplicaCount: 20 # Optional. Default: 100
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://devops-prometheus.prome:80/
+        metricName: Consumer group [ logstash-to-biz ] delay over 500k messages
+        threshold: '1'
+        query: sum(kafka_consumergroup_lag_sum{consumergroup="logstash-to-biz"})

@@ -1,0 +1,18 @@
+input:
+  kafka:
+    addresses:
+      - "${KAFKA_HOST}:${KAFKA_PORT}"
+    topics:
+      - "${KAFKA_TOPIC:wafaccess}"
+    consumer_group: "${KAFKA_CONSUMER_GROUP}"
+    start_from_oldest: false
+    batching:
+      count: ${INPUT_BATCH_COUNT:8000}
+      period: ${INPUT_BATCH_PERIOD:1m}
+
+output:
+  gcp_pubsub:
+    project: "sit-env"
+    topic: "poc-pubsub-wafacess"
+    max_in_flight: 64
+    endpoint: "xxxx"
