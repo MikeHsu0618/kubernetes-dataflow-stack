@@ -80,7 +80,7 @@ watch: false
 config: |
   input:
     generate:
-      interval: 0.0001s
+      interval: 0.1s
       count: 100000000
       mapping: |
         root = if random_int() % 2 == 0 {
