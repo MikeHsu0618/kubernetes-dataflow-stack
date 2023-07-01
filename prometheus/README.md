@@ -52,7 +52,13 @@ Grafana:
   ingressClassName: nginx
     hosts: ["grafana.domain.com"]
     path: /
-
+  grafana.ini:
+    #viewer can edit dashboard but not save 
+    users:
+      viewers_can_edit: true
+    # make querier max query time to 5m
+    dataproxy:
+      timeout: 300
 
 # 如果在本地 Docker-Desktop 需要將 hostRootFsMount 關閉才能啟動 prometheus-node-exporter
 ## Deploy node exporter as a daemonset to all nodes

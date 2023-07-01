@@ -147,3 +147,48 @@ service_account: |
     "client_x509_cert_url": "your_client_x509_cert_url"
   }
 ```
+
+loki.yaml :
+```
+  server:
+    # increase the maximum size of queries
+    grpc_server_max_recv_msg_size: 8388608 # 8MB
+    grpc_server_max_send_msg_size: 8388608 # 8MB
+    # avoid querier timeouts
+    http_server_read_timeout: 600s
+    http_server_write_timeout: 600s
+    
+  
+  limits_config:
+    # set the maximum timeout for queries    
+    query_timeout: 5m
+```
+
+gateway.nginxConfig
+```
+  nginxConfig:
+    file: |
+      worker_processes  5;  ## Default: 1
+      error_log  /dev/stderr;
+      pid        /tmp/nginx.pid;
+      worker_rlimit_nofile 8192;
+
+      events {
+        worker_connections  4096;  ## Default: 1024
+      }
+
+      http {
+        client_body_temp_path /tmp/client_temp;
+        proxy_temp_path       /tmp/proxy_temp_path;
+        fastcgi_temp_path     /tmp/fastcgi_temp;
+        uwsgi_temp_path       /tmp/uwsgi_temp;
+        scgi_temp_path        /tmp/scgi_temp;
+
+		###################
+		# -- Increase the timeouts to avoid 504 errors
+		proxy_read_timeout 600s;
+		###################
+        ...
+        }
+      }
+```
