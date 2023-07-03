@@ -162,6 +162,19 @@ loki.yaml :
   limits_config:
     # set the maximum timeout for queries    
     query_timeout: 5m
+  
+  # shows "too many outstanding requests"
+  # check https://github.com/grafana/loki/issues/5123#issuecomment-1025488801
+  query_range:
+  split_queries_by_interval: 0
+  parallelise_shardable_queries: false
+
+  querier:
+    max_concurrent: 2048
+  
+  frontend:
+    max_outstanding_per_tenant: 4096
+    compress_responses: true
 ```
 
 gateway.nginxConfig
