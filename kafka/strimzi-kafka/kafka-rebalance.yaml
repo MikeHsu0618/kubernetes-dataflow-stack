@@ -1,0 +1,16 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaRebalance
+metadata:
+  name: kafka-rebalance
+  namespace: olm
+#  annotations:
+  # approve the rebalance:
+#    strimzi.io/rebalance: "approve"
+  labels:
+    # cluster name
+    strimzi.io/cluster: sit-kafka1
+spec:
+  goals:
+    - DiskCapacityGoal
+#    - CpuCapacityGoal
+  skipHardGoalCheck: true
