@@ -250,14 +250,25 @@ metaMonitoring:
   serviceMonitor:
     # -- If enabled, ServiceMonitor resources for Prometheus Operator are created
     enabled: true
-
-
   # metaMonitoringAgent configures the built in Grafana Agent that can scrape metrics and logs and send them to a local or remote destination
   grafanaAgent:
     # -- Controls whether to create PodLogs, MetricsInstance, LogsInstance, and GrafanaAgent CRs to scrape the
     # ServiceMonitors of the chart and ship metrics and logs to the remote endpoints below.
     # Note that you need to configure serviceMonitor in order to have some metrics available.
-    enabled: false
+    enabled: true
+    installOperator: true
+    logs:
+      remote:
+        url: ""
+    metrics:
+      remote:
+        url: "http://prometheus-stack-prometheus.default.svc.cluster.local:9090/api/v1/write"
+      scrapeK8s:
+        enabled: false
+        kubeStateMetrics:
+          labelSelectors:
+            app.kubernetes.io/name: kube-state-metrics
+          namespace: default
 
 # Rules for the Prometheus Operator
 prometheusRule:

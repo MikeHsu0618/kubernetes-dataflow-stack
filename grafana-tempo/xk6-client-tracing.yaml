@@ -1,21 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: k6-tracing
+  name: xk6-tracing
   namespace: tracing
 spec:
+  minReadySeconds: 10
   replicas: 1
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: k6-tracing
+      app: xk6-tracing
+      name: xk6-tracing
   template:
     metadata:
       labels:
-        app: k6-tracing
+        app: xk6-tracing
+        name: xk6-tracing
     spec:
       containers:
-        - name: k6-tracing
-          image: ghcr.io/grafana/xk6-client-tracing:v0.0.2
-          env:
+        - env:
             - name: ENDPOINT
-              value: "tempo-distributor.tracing:4317"
+              value: tempo-distributor.tracing:4317
+          image: ghcr.io/grafana/xk6-client-tracing:v0.0.2
+          imagePullPolicy: IfNotPresent
+          name: xk6-tracing
