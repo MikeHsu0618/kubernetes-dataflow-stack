@@ -1,7 +1,7 @@
 
 Installation:
 ```
-helm install prome prometheus-community/kube-prometheus-stack --values=prometheus-values.yaml
+helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack --values=prometheus-values.yaml -n monitoring --create-namespace
 ```
 
 重要參數：
