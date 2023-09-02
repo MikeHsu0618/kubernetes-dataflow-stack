@@ -2,6 +2,8 @@
 Installation:
 ```
 helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack --values=prometheus-values.yaml -n monitoring --create-namespace
+
+helm diff upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack --values=prometheus-values.yaml -n monitoring
 ```
 
 重要參數：
@@ -72,4 +74,13 @@ Grafana:
 prometheus-node-exporter:
   hostRootFsMount:
     enabled: false
+    
+## [kube-prometheus-stack] No $cluster variable is being taken
+## https://github.com/prometheus-community/helm-charts/issues/2887    
+kubelet:
+  serviceMonitor:
+    cAdvisorRelabelings:
+      - sourceLabels: [__address__]
+        targetLabel: cluster
+        replacement: docker-desktop
 ```
