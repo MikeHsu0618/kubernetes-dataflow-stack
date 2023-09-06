@@ -62,6 +62,7 @@ Grafana:
     dataproxy:
       timeout: 300
 
+# https://github.com/prometheus-community/helm-charts/issues/467
 # 如果在本地 Docker-Desktop 需要將 hostRootFsMount 關閉才能啟動 prometheus-node-exporter
 ## Deploy node exporter as a daemonset to all nodes
 ##
