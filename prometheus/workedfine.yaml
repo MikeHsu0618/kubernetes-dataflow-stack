@@ -1,0 +1,70 @@
+fullnameOverride: prometheus-stack
+grafana:
+  adminPassword: admin
+  defaultDashboardsEnabled: true
+  defaultDashboardsTimezone: Asia/Taipei
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - grafana.domain.com
+    ingressClassName: nginx
+  persistence:
+    accessModes:
+      - ReadWriteOnce
+    enabled: true
+    size: 10Gi
+    type: pvc
+kube-state-metrics:
+  prometheus:
+    monitor:
+      enabled: true
+  selfMonitor:
+    enabled: true
+kubeControllerManager:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubelet:
+  serviceMonitor:
+    cAdvisor: false
+nodeExporter:
+  enabled: true
+  hostRootfs: false
+prometheus:
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - prometheus.domain.com
+    ingressClassName: nginx
+    paths:
+      - /
+  prometheusSpec:
+    additionalRemoteWrite: []
+    additionalScrapeConfigs: []
+    enableFeatures: []
+    enableRemoteWriteReceiver: true
+    remoteRead: []
+    remoteWrite: []
+    remoteWriteDashboards: true
+    retention: 10d
+    storageSpec: {}
+    volumeMounts: []
+    volumes: []
+    walCompression: true
+  serviceMonitor:
+    selfMonitor: true
+prometheus-node-exporter:
+  hostRootFsMount:
+    enabled: false
+prometheusOperator:
+  enabled: true
+  kubeletService:
+    enabled: true
+  verticalPodAutoscaler:
+    enabled: false
