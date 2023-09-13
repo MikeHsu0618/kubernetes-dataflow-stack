@@ -1,0 +1,17 @@
+## grafana-agent 本身沒有被抓取的指標，所以需要自己定義 ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: grafana-agent-monitor
+  namespace: monitoring
+  labels:
+    k8s-app: grafana-agent-monitor
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grafana-agent
+      operator.agent.grafana.com/name: grafana-agent
+  endpoints:
+    - port: http-metrics
+      interval: 15s
+

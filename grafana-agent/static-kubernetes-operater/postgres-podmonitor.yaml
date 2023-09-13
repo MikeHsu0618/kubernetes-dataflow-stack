@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: postgres-exporter-podmonitor
+  labels:
+#    release: prometheus-stack
+    name: postgres-exporter-podmonitor
+spec:
+  selector:
+    matchLabels:
+      app: postgres-with-exporter
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s  # 抓取指標的頻率，你可以根據需求進行
+
