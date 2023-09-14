@@ -1,0 +1,21 @@
+# Source: loki-simple-scalable/templates/monitoring/logs-instance.yaml
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: LogsInstance
+metadata:
+  name: test-loki
+  namespace: monitoring
+  labels:
+    agent: grafana-agent-logs
+spec:
+  clients:
+      #TODO: need to support auth here
+    - url: http://loki-write.default.svc.cluster.local:3100/loki/api/v1/push
+      externalLabels:
+        cluster: test-loki
+    # Supply an empty namespace selector to look in all namespaces. Remove
+    # this to only look in the same namespace as the LogsInstance CR
+  podLogsNamespaceSelector: { }
+
+  podLogsSelector:
+    matchLabels:
+      instance: primary
