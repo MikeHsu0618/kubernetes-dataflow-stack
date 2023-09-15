@@ -1,0 +1,37 @@
+fullnameOverride: grafana-agent-flow
+
+agent:
+  mode: 'flow'
+
+  clustering:
+    # -- Deploy agents in a cluster to allow for load distribution. Only
+    # applies when agent.mode=flow and controller.type=statefulset.
+    enabled: true
+
+  enableReporting: false
+
+  resources: {}
+
+controller:
+  # -- Type of controller to use for deploying Grafana Agent in the cluster.
+  # Must be one of 'daemonset', 'deployment', or 'statefulset'.
+  type: 'statefulset'
+
+  # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
+  replicas: 3
+
+  # -- Whether to enable automatic deletion of stale PVCs due to a scale down operation, when controller.type is 'statefulset'.
+  enableStatefulSetAutoDeletePVC: true
+
+  autoscaling:
+    # -- Creates a HorizontalPodAutoscaler for controller type deployment.
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 0
+    targetMemoryUtilizationPercentage: 80
+
+  # -- volumeClaimTemplates to add when controller.type is 'statefulset'.
+  volumeClaimTemplates: []
+
+
