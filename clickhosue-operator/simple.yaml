@@ -1,0 +1,44 @@
+apiVersion: "clickhouse.altinity.com/v1"
+kind: "ClickHouseInstallation"
+metadata:
+  name: "simple-clickhouse"
+  namespace: clickhouse
+spec:
+  configuration:
+    clusters:
+      - name: "simple"
+        layout:
+          shardsCount: 1
+          replicasCount: 1
+
+  defaults:
+    templates:
+      podTemplate: pod-template-resource-limit
+
+  templates:
+    podTemplates:
+      - name: pod-template-resource-limit
+        spec:
+          containers:
+            - name: clickhouse
+              image: clickhouse/clickhouse-server
+              volumeMounts:
+                - name: clickhouse-data-storage
+                  mountPath: /var/lib/clickhouse
+              # Container has explicitly specified resource limits
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "500m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+
+    volumeClaimTemplates:
+      - name: clickhouse-data-storage
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 100Gi
