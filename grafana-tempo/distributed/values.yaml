@@ -10,7 +10,7 @@ global_overrides:
 ingester:
   replicas: 3
   autoscaling:
-    enabled: true
+    enabled: false
   resources: {}
   persistence:
     enabled: true
