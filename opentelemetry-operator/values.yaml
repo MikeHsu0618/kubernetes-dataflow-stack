@@ -1,0 +1,25 @@
+replicaCount: 1
+
+nameOverride: "opentelemetry-operator"
+
+manager:
+  autoInstrumentationImage:
+    java: {}
+    nodejs: {}
+    python: {}
+    dotnet: {}
+    go: {}
+  # A full list of valud identifiers can be found here: https://github.com/open-telemetry/opentelemetry-operator/blob/main/pkg/featuregate/featuregate.go
+  featureGates: "operator.autoinstrumentation.go"
+
+  serviceMonitor:
+    enabled: false
+  prometheusRule:
+    enabled: false
+
+## They also enable the sidecar injection for OpenTelemetryCollector and Instrumentation CR's
+admissionWebhooks:
+  create: true
+  certManager:
+    enabled: false
+  autoGenerateCert: true
