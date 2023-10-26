@@ -1,3 +1,7 @@
 .idea
 *.example.yaml
 *-sa.json
+
+node_modules
+
+*.mmdb

@@ -1,0 +1,38 @@
+api:
+  enabled: true
+  address: "0.0.0.0:8686"
+
+sources:
+  with_ip_info:
+    type: "demo_logs"
+    interval: 1
+    format: json
+
+enrichment_tables:
+  geoip_table:
+    path: /etc/vector/GeoLite2-City.mmdb
+    type: geoip
+
+transforms:
+  geoip:
+    type: remap
+    inputs:
+      - with_ip_info
+    source: |-
+      .parsed_message = parse_json!(.message)
+      . = .parsed_message.host
+      .geoip = get_enrichment_table_record!("geoip_table",
+        {
+          "ip": "128.101.101.101"
+        }
+      )
+
+sinks:
+  console:
+    inputs:
+      - geoip
+    target: "stdout"
+    type: "console"
+    encoding:
+      codec: "json"
+
