@@ -1,0 +1,13 @@
+
+fullnameOverride: "tempo-vulture"
+
+replicas: 1
+
+# ServiceMonitor configuration
+serviceMonitor:
+  enabled: true
+
+tempoAddress:
+  push: http://tempo-distributor.tracing
+  query: http://tempo-query-frontend.tracing:3100
+
