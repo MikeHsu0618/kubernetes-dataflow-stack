@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kadeck-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kadeck
+  template:
+    metadata:
+      labels:
+        app: kadeck
+    spec:
+      containers:
+        - name: kadeck-container
+          image: xeotek/kadeck:5.0.2
+          ports:
+            - containerPort: 80
+          env:
+            - name: xeotek_kadeck_free
+              value: ""
+            - name: web
+              value: "80"
