@@ -2,10 +2,13 @@ version: '3'
 
 services:
   vector:
-    image: timberio/vector:latest-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mikehsu0618/vector-geo:latest
     container_name: vector
     ports:
       - "8686:8686"
     volumes:
       - ./vector.yaml:/etc/vector/vector.yaml:ro
-      - ./../geo/GeoLite2-City.mmdb:/etc/vector/GeoLite2-City.mmdb:ro
+#      - ./../geo/GeoLite2-City.mmdb:/etc/vector/GeoLite2-City.mmdb:ro

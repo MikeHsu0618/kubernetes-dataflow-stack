@@ -4,6 +4,12 @@ Docker 下載:
 docker pull timberio/vector:0.28.1-debian
 ```
 
+GeoLite2-City.mmdb 下載:
+```
+## 登入後手動下載，放置目標路徑
+https://dev.maxmind.com/geoip/geolite2-free-geolocation-data
+```
+
 
 Demo Configure:
 ```

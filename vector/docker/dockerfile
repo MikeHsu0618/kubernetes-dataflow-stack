@@ -2,4 +2,6 @@
 FROM timberio/vector:latest-alpine
 
 # 複製 mmdb 文件到容器中的指定位置
-COPY GeoLite2-City.mmdb /etc/vector/GeoLite2-City.mmdb
+# 盡量不要使用到 /etc/vector 路徑，容易被覆蓋
+COPY GeoLite2-City.mmdb /etc/geoip/GeoLite2-City.mmdb
+
