@@ -1,3 +1,8 @@
+Strimzi Kafka Operator installation:
+```
+helm install strimzi-cluster-operator oci://quay.io/strimzi-helm/strimzi-kafka-operator
+```
+
 Handle Kafka Rebalance:
 ```
 kubectl annotate kafkarebalance kafka-rebalance strimzi.io/rebalance=approve -n myproject
