@@ -1,0 +1,6 @@
+
+https://github.com/grafana/beyla/blob/2a5433b58aa4001d422d4c77c4478defa9c06d61/test/integration/k8s/manifests/06-beyla-daemonset.yml#L37
+
+https://grafana.com/blog/2023/11/14/grafana-beyla-1.0-release-zero-code-instrumentation-for-application-telemetry-using-ebpf/
+
+https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/setup/kubernetes/?pg=blog&plcmt=body-txt
