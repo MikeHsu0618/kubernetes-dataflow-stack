@@ -18,7 +18,7 @@ import {
 // Prints module-level constants
 // console.log(kafka);
 
-const brokers = ["35.201.221.19:9093"];
+const brokers = ["localhost:9093"];
 const topic = "xk6_kafka_json_topic";
 
 const writer = new Writer({
