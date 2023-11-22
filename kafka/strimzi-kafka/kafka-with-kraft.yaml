@@ -64,6 +64,9 @@ metadata:
     strimzi.io/node-pools: enabled
     strimzi.io/kraft: enabled
 spec:
+  entityOperator:
+    userOperator: { }
+  kafkaExporter: { }
   kafka:
     version: 3.6.0
     # The replicas field is required by the Kafka CRD schema while the KafkaNodePools feature gate is in alpha phase.
@@ -84,6 +87,12 @@ spec:
       transaction.state.log.min.isr: 2
       default.replication.factor: 3
       min.insync.replicas: 2
+    metricsConfig:
+      type: jmxPrometheusExporter
+      valueFrom:
+        configMapKeyRef:
+          name: kafka-metrics
+          key: kafka-metrics-config.yml
     # The storage field is required by the Kafka CRD schema while the KafkaNodePools feature gate is in alpha phase.
     # But it will be ignored when Kafka Node Pools are used
     storage:
@@ -101,5 +110,9 @@ spec:
       type: persistent-claim
       size: 1Gi
       deleteClaim: false
-  entityOperator:
-    userOperator: {}
+    metricsConfig:
+      type: jmxPrometheusExporter
+      valueFrom:
+        configMapKeyRef:
+          name: kafka-metrics
+          key: zookeeper-metrics-config.yml

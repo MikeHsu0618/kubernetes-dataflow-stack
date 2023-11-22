@@ -1,0 +1,4 @@
+dashboards:
+  enabled: true
+featureGates: +UseKRaft,+KafkaNodePools
+watchAnyNamespace: true
