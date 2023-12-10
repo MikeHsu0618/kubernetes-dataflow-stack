@@ -120,7 +120,7 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        // connection.deleteTopic(topic);
+        connection.deleteTopic(topic);
     }
     writer.close();
     reader.close();
