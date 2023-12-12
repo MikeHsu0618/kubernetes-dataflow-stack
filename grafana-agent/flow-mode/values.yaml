@@ -2,14 +2,9 @@ fullnameOverride: grafana-agent-flow
 
 agent:
   mode: 'flow'
-
   clustering:
-    # -- Deploy agents in a cluster to allow for load distribution. Only
-    # applies when agent.mode=flow and controller.type=statefulset.
     enabled: true
-
   enableReporting: false
-
   resources: {}
 
 controller:

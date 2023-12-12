@@ -1,0 +1,60 @@
+fullnameOverride: grafana-agent-flow
+
+controller:
+  type: 'deployment'
+  replicas: 1
+  enableStatefulSetAutoDeletePVC: true
+
+agent:
+  mode: 'flow'
+  clustering:
+    enabled: true
+  enableReporting: false
+  resources: {}
+
+  extraPorts:
+    - name: "otlp-grpc"
+      port: 4317
+      targetPort: 4317
+      protocol: "TCP"
+    - name: "otlp-http"
+      port: 4318
+      targetPort: 4318
+      protocol: "TCP"
+
+  configMap:
+    create: true
+    content: |
+      logging {
+      	level  = "info"
+      	format = "logfmt"
+      }
+      otelcol.exporter.otlp "local" {
+        client {
+          endpoint = "tempo-distributor.tracing:4317"
+          tls {
+            insecure             = true
+            insecure_skip_verify = true
+          }
+        }
+      }
+      
+      otelcol.exporter.otlphttp "local" {
+        client {
+          endpoint = "http://tempo-gateway.tracing"
+          tls {
+            insecure             = true
+            insecure_skip_verify = true
+          }
+        }
+      }
+      
+      otelcol.receiver.otlp "default" {
+        grpc {}
+        http {}
+        output {
+          metrics = []
+          logs = []
+          traces = [otelcol.exporter.otlphttp.local.input]
+        }
+      }
