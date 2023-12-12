@@ -1,0 +1,57 @@
+# values.yaml
+fullnameOverride: loki
+
+customParams:
+  authEnabled: false
+
+serviceMonitor:
+  enabled: true
+
+prometheusRule:
+  enabled: true
+
+ingester:
+  kind: StatefulSet
+  replicas: 1
+  autoscaling:
+    enabled: false
+  resources: {}
+
+distributor:
+  replicas: 1
+  autoscaling:
+    enabled: false
+  resources: {}
+
+querier:
+  replicas: 1
+  autoscaling:
+    enabled: false
+  resources: {}
+
+queryFrontend:
+  replicas: 1
+  autoscaling:
+    enabled: false
+  resources: {}
+
+queryScheduler:
+  enabled: true
+  replicas: 2
+  affinity: ''
+  resources: {}
+
+gateway:
+  enabled: true
+  replicas: 1
+  autoscaling:
+    enabled: false
+  resources: {}
+  basicAuth:
+    enabled: false
+    username: log-user
+    password: log-password
+
+compactor:
+  enabled: true
+  resources: {}

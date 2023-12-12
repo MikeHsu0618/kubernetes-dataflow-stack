@@ -1,6 +1,6 @@
 .idea
 *.example.yaml
-*.json
+*-sa.json
 
 node_modules
 
