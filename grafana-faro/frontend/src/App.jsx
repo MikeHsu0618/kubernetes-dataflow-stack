@@ -2,34 +2,40 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import {getWebInstrumentations, initializeFaro, LogLevel} from '@grafana/faro-web-sdk';
-import {TracingInstrumentation} from "@grafana/faro-web-tracing";
 
-const faro = initializeFaro({
-    url: 'http://localhost:50803/collect',
+
+import { getWebInstrumentations, initializeFaro } from '@grafana/faro-web-sdk';
+import { TracingInstrumentation } from '@grafana/faro-web-tracing';
+
+var faro = initializeFaro({
+    url: 'http://localhost:12347/collect',
     app: {
-        name: 'frontend',
+        name: 'frontend-app',
         version: '1.0.0',
-        environment: 'production',
-    }
+        environment: 'production'
+    },
+    instrumentations: [
+        // Mandatory, overwriting the instrumentations array would cause the default instrumentations to be omitted
+        ...getWebInstrumentations(),
+        new TracingInstrumentation(),
+    ],
 });
+
 console.log(faro);
 faro.api.pushError(123123);
-// faro.api.pushTraces(123123);
-
-faro.api.pushLog(['This is a warning'], { level: LogLevel.WARN });
-faro.api.pushLog(['This is a warning'], { level: LogLevel.WARN });
-faro.api.pushLog(['This is a warning'], { level: LogLevel.WARN });
-faro.api.pushLog(['This is a warning'], { level: LogLevel.WARN });
-faro.api.pushLog(['This is a warning'], { level: LogLevel.WARN });
+faro.api.pushTraces(123123);
+faro.api.pushTraces([{name: 'test', duration: 123123, timestamp: 123123}]);
+faro.api.pushLog(['This is a warning']);
+faro.api.pushLog(['This is a warning']);
+faro.api.pushLog(['This is a warning']);
+faro.api.pushLog(['This is a warning']);
+faro.api.pushLog(['This is a warning']);
 
 fetch('https://www.google.com')
+fetch('https://www.google.com', {method: 'POST'})
 
 function App() {
   const [count, setCount] = useState(0)
-
-
-
   return (
     <>
       <div>
