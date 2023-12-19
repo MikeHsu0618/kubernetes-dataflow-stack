@@ -24,9 +24,10 @@ agent:
     create: true
     content: |
       logging {
-      	level  = "debug"
+      	level  = "info"
       	format = "logfmt"
       }
+      
       faro.receiver "default" {   
         server {
           cors_allowed_origins = ["*"]
