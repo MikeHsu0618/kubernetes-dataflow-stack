@@ -205,3 +205,33 @@ gateway.nginxConfig
         }
       }
 ```
+
+Ruler configuation for loki-distributed:
+```
+# values.yaml
+structuredConfig:
+    ruler:
+      wal:
+				# write the WAL to writable location
+        dir: /var/loki/wal
+      remote_write:
+        enabled: true
+        client:
+          url: http://sit-prome-prometheus.prome:9090/api/v1/write
+
+ruler:
+  enabled: true
+  directories:
+		# tenant-id
+    standard-cluster-1:
+      rule.txt: |
+        groups:
+          - name: production_rules
+            limit: 10
+            interval: 1m
+            rules:
+              - record: demo:AAAA:rate1m
+                expr: |
+									# group by 可以轉變為 meetrics labels
+                  sum by(app) (rate({namespace="logging"} [1m]))
+```
