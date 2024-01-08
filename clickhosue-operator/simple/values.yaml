@@ -1,0 +1,10 @@
+fullnameOverride: "clickhouse-operator"
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: sit-prome
+
+dashboards:
+  enabled: ture
+  grafana_folder: clickhouse

@@ -5,6 +5,11 @@ metadata:
   namespace: clickhouse
 spec:
   configuration:
+    zookeeper:
+      nodes:
+        - host: clickhouse-keeper-0.clickhouse-keepers
+        - host: clickhouse-keeper-1.clickhouse-keepers
+        - host: clickhouse-keeper-2.clickhouse-keepers
     clusters:
       - name: "simple"
         layout:
@@ -32,11 +37,11 @@ spec:
               # Container has explicitly specified resource limits
               resources:
                 requests:
-                  memory: "0.5Gi"
-                  cpu: "300m"
+                  memory: 2Gi
+                  cpu: 0.5
                 limits:
-                  memory: "0.5Gi"
-                  cpu: "300m"
+                  memory: 4Gi
+                  cpu: 2
 
     volumeClaimTemplates:
       - name: clickhouse-data-storage
@@ -45,4 +50,4 @@ spec:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 10Gi
+              storage: 100Gi
