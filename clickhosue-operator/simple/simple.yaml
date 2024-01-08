@@ -8,8 +8,6 @@ spec:
     zookeeper:
       nodes:
         - host: clickhouse-keeper-0.clickhouse-keepers
-        - host: clickhouse-keeper-1.clickhouse-keepers
-        - host: clickhouse-keeper-2.clickhouse-keepers
     clusters:
       - name: "simple"
         layout:
@@ -20,6 +18,9 @@ spec:
       admin/networks/ip:
         - "127.0.0.1"
         - "::/0"
+    profiles:
+      default/date_time_input_format: "best_effort"
+      default/allow_experimental_object_type: 1  # enable object type (JSON)
   defaults:
     templates:
       podTemplate: pod-template-resource-limit
