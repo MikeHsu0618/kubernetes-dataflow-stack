@@ -1,0 +1,144 @@
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: keeper-replication-test
+spec:
+  defaults:
+    templates:
+      podTemplate: clickhouse-v21.12
+      serviceTemplate: service-template
+      replicaServiceTemplate: service-template
+  configuration:
+    zookeeper:
+      nodes:
+        - host: localhost
+          port: 2181
+    clusters:
+      - name: cluster
+        layout:
+          shardsCount: 1
+          replicasCount: 3
+    files:
+      defaults.xml: |
+        <yandex>
+          <default_replica_path>/clickhouse/{installation}/{cluster}/tables/{shard}/{database}/{table}</default_replica_path>
+          <default_replica_name>{replica}</default_replica_name>
+        </yandex>
+      keeper.xml: |
+        <yandex>
+          <keeper_server>
+            <tcp_port>2181</tcp_port>
+            <server_id from_env="CLICKHOUSE_REPLICA"/>
+            <log_storage_path>/var/lib/clickhouse/coordination/log</log_storage_path>
+            <snapshot_storage_path>/var/lib/clickhouse/coordination/snapshots</snapshot_storage_path>
+            <coordination_settings>
+              <raft_logs_level>trace</raft_logs_level>
+            </coordination_settings>
+            <raft_configuration>
+              <server>
+                <id>0</id>
+                <hostname>chi-keeper-replication-test-cluster-0-0</hostname>
+                <port>9444</port>
+              </server>
+              <server>
+                <id>1</id>
+                <hostname>chi-keeper-replication-test-cluster-0-1</hostname>
+                <port>9444</port>
+              </server>
+              <server>
+                <id>2</id>
+                <hostname>chi-keeper-replication-test-cluster-0-2</hostname>
+                <port>9444</port>
+              </server>
+            </raft_configuration>
+          </keeper_server>
+        </yandex>
+  templates:
+    podTemplates:
+      # 21.12 contains production ready Keeper
+      - name: clickhouse-v21.12
+        spec:
+          containers:
+            - name: clickhouse
+              image: yandex/clickhouse-server:21.12.2.17
+              ports:
+                - containerPort: 9000
+                  name: tcp
+                - containerPort: 8123
+                  name: http
+                - containerPort: 9009
+                  name: interserver
+                - containerPort: 2181
+                  name: keeper
+                - containerPort: 9444
+                  name: raft
+              livenessProbe:
+                httpGet:
+                  path: /ping
+                  port: http
+                initialDelaySeconds: 60
+                periodSeconds: 3
+                failureThreshold: 10
+              readinessProbe:
+                tcpSocket:
+                  port: raft
+                initialDelaySeconds: 10
+                periodSeconds: 3
+              env:
+                - name: CLICKHOUSE_REPLICA
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.labels['clickhouse.altinity.com/replica']
+                - name: CLICKHOUSE_INIT_TIMEOUT
+                  value: "60"
+              volumeMounts:
+                - name: volume-template-default
+                  mountPath: /var/lib/clickhouse
+                - name: bootstrap-database
+                  mountPath: /docker-entrypoint-initdb.d
+          volumes:
+            - name: bootstrap-database
+              configMap:
+                name: bootstrap-database
+    serviceTemplates:
+      - name: service-template
+        spec:
+          type: ClusterIP
+          ports:
+            - name: http
+              port: 8123
+            - name: tcp
+              port: 9000
+            - name: interserver
+              port: 9009
+            - name: keeper
+              port: 2181
+            - name: raft
+              port: 9444
+    volumeClaimTemplates:
+      - name: volume-template-default
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          # minikube standard dynamic storage class
+          storageClassName: standard
+          resources:
+            requests:
+              storage: 2Gi
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bootstrap-database
+data:
+  01_create_database.sql: |
+    CREATE DATABASE IF NOT EXISTS test;
+  02_create_table_local.sql: |
+    CREATE TABLE IF NOT EXISTS test.events_local ON CLUSTER `{cluster}` (
+        event_time DateTime
+    ) ENGINE=ReplicatedMergeTree
+        ORDER BY event_time;
+  03_create_table_distributed.sql: |
+    CREATE TABLE IF NOT EXISTS test.events ON CLUSTER `{cluster}` AS test.events_local
+        ENGINE=Distributed(`{cluster}`, test, events_local);
