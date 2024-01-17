@@ -1,0 +1,513 @@
+# Global override values
+# https://signoz.io/docs/install/kubernetes/gcp/
+global:
+  clusterName: ""
+  storageClass: gce-resizable
+  cloud: gcp
+
+fullnameOverride: "signoz"
+clusterName: ""
+
+clickhouse:
+  enabled: true
+  installCustomStorageClass: true
+  zookeeper:
+    enabled: true
+
+  # -- Clickhouse cluster
+  cluster: cluster
+  database: signoz_metrics
+  traceDatabase: signoz_traces
+  user: admin
+  password: 27ff0399-0d3a-4bd8-919d-17c2181e6fb9
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  #   limits:
+  #     cpu: 2000m
+  #     memory: 4Gi
+
+  # -- An allowlist of IP addresses or network masks the ClickHouse user is
+  # allowed to access from. By default anything within a private network will be
+  # allowed. This should suffice for most use case although to expose to other
+  # networks you will need to update this setting.
+  #
+  # Refs:
+  # - https://clickhouse.com/docs/en/operations/settings/settings-users/#user-namenetworks
+  # - https://en.wikipedia.org/wiki/Reserved_IP_addresses#IPv4
+  allowedNetworkIps:
+    - "10.0.0.0/8"
+    - "100.64.0.0/10"
+    - "172.16.0.0/12"
+    - "192.0.0.0/24"
+    - "198.18.0.0/15"
+    - "192.168.0.0/16"
+
+  persistence:
+    enabled: true
+    storageClass: null
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+
+  # -- Clickhouse user profile configuration.
+  # You can use this to override profile settings, for example
+  # `default/max_memory_usage: 40000000000` or `default/max_concurrent_queries: 200`
+  #
+  # For the full list of settings, see:
+  # - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
+  # - https://clickhouse.com/docs/en/operations/settings/settings/
+  #
+  profiles: {}
+
+  # -- Clickhouse cluster layout. (Experimental, use at own risk)
+  # For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
+  # section on clusters and layouts.
+  #
+  layout:
+    shardsCount: 1
+    replicasCount: 1
+
+  # -- ClickHouse settings configuration.
+  # You can use this to override settings, for example `prometheus/port: 9363`
+  # For the full list of settings, see:
+  # - https://clickhouse.com/docs/en/operations/settings/settings/
+  #
+  settings:
+    prometheus/endpoint: /metrics
+    prometheus/port: 9363
+
+  # -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
+  defaultSettings:
+    format_schema_path: /etc/clickhouse-server/config.d/
+    user_scripts_path: /var/lib/clickhouse/user_scripts/
+    user_defined_executable_functions_config: '/etc/clickhouse-server/functions/custom-functions.xml'
+
+  # -- ClickHouse pod(s) annotation.
+  podAnnotations:
+    signoz.io/scrape: 'true'
+    signoz.io/port: '9363'
+    signoz.io/path: /metrics
+
+  # Cold storage configuration
+  coldStorage:
+    enabled: false
+    defaultKeepFreeSpaceBytes: "10485760"
+    type: s3
+    endpoint: https://<bucket-name>.s3-<region>.amazonaws.com/data/
+    accessKey: <access_key_id>
+    secretAccess: <secret_access_key>
+    # AWS role configuration - to use environment variables instead of passing access and secret keys
+    role:
+      # -- Whether to enable AWS IAM ARN role.
+      enabled: false
+      # -- Annotations to use by service account associated to Clickhouse instance
+      annotations:
+        # aws role arn
+        eks.amazonaws.com/role-arn: arn:aws:iam::******:role/*****
+
+  # -- Clickhouse configuration files.
+  #
+  # Refs:
+  # - https://clickhouse.com/docs/en/operations/configuration-files/
+  # - https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/05-settings-05-files-nested.yaml
+  files: {}
+    # config.d/log_rotation.xml: |
+    #   <clickhouse>
+    #     <logger>
+    #       <level>trace</level>
+    #       <console>true</console>
+    #       <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+    #       <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+    #       <size>100M</size>
+    #       <count>10</count>
+    #     </logger>
+    #   </clickhouse>
+    # test.xml: |
+    #   <clickhouse>
+    #     <some-setting>some-value</some-setting>
+    #   </clickhouse>
+
+  ###
+  ###
+  ### ---- MISC ----
+  ###
+  ###
+
+queryService:
+  name: "query-service"
+  replicaCount: 1
+
+  service:
+    annotations: {}
+    type: ClusterIP
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: 750m
+    #   memory: 1000Mi
+
+  persistence:
+    enabled: true
+    storageClass: null
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+
+frontend:
+  name: "frontend"
+  replicaCount: 1
+
+  autoscaling:
+    enabled: false
+
+  # -- Frontend Nginx extra configurations
+  nginxExtraConfig: |
+      client_max_body_size 24M;
+      large_client_header_buffers 8 16k;
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: 200m
+    #   memory: 200Mi
+
+alertmanager:
+  name: "alertmanager"
+  replicaCount: 1
+
+
+schemaMigrator:
+  enabled: true
+  name: "schema-migrator"
+
+otelCollector:
+  name: "otel-collector"
+
+  service:
+    annotations: {}
+    type: ClusterIP
+
+  # -- Whether to enable grouping of exceptions with same name and different stack trace.
+  # This is useful when you have a lot of exceptions with same name but different stack trace.
+  # This is a tradeoff between cardinality and accuracy of exception grouping.
+  lowCardinalityExceptionGrouping: false
+
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    # limits:
+    #   cpu: "1"
+    #   memory: 2Gi
+
+  autoscaling:
+    enabled: false
+
+  # -- Configurations for OtelCollector
+  # @default -- See `values.yaml` for defaults
+  config:
+    receivers:
+      otlp/spanmetrics:
+        protocols:
+          grpc:
+            endpoint: localhost:12345
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+            max_recv_msg_size_mib: 16
+          http:
+            endpoint: 0.0.0.0:4318
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+          # Uncomment to enable thift_company receiver.
+          # You will also have set set enable it in `otelCollector.ports
+          # thrift_compact:
+          #   endpoint: 0.0.0.0:6831
+      hostmetrics:
+        collection_interval: 30s
+        scrapers:
+          cpu: {}
+          load: {}
+          memory: {}
+          disk: {}
+          filesystem: {}
+          network: {}
+      httplogreceiver/heroku:
+        # endpoint specifies the network interface and port which will receive data
+        endpoint: 0.0.0.0:8081
+        source: heroku
+      httplogreceiver/json:
+        # endpoint specifies the network interface and port which will receive data
+        endpoint: 0.0.0.0:8082
+        source: json
+    processors:
+      # default parsing of logs
+      # logstransform/internal:
+      #   operators:
+      #     - type: regex_parser
+      #       id: traceid
+      #       # https://regex101.com/r/yFW5UC/1
+      #       regex: '(?i)(^trace|(("| )+trace))((-|_||)id("|=| |-|:)*)(?P<trace_id>[A-Fa-f0-9]+)'
+      #       parse_from: body
+      #       parse_to: attributes.temp_trace
+      #       if: 'body matches "(?i)(^trace|((\"| )+trace))((-|_||)id(\"|=| |-|:)*)(?P<trace_id>[A-Fa-f0-9]+)"'
+      #       output: spanid
+      #     - type: regex_parser
+      #       id: spanid
+      #       # https://regex101.com/r/DZ2gng/1
+      #       regex: '(?i)(^span|(("| )+span))((-|_||)id("|=| |-|:)*)(?P<span_id>[A-Fa-f0-9]+)'
+      #       parse_from: body
+      #       parse_to: attributes.temp_trace
+      #       if: 'body matches "(?i)(^span|((\"| )+span))((-|_||)id(\"|=| |-|:)*)(?P<span_id>[A-Fa-f0-9]+)"'
+      #       output: trace_parser
+      #     - type: trace_parser
+      #       id: trace_parser
+      #       trace_id:
+      #         parse_from: attributes.temp_trace.trace_id
+      #       span_id:
+      #         parse_from: attributes.temp_trace.span_id
+      #       output: remove_temp
+      #     - type: remove
+      #       id: remove_temp
+      #       field: attributes.temp_trace
+      #       if: '"temp_trace" in attributes'
+      # Batch processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/batchprocessor/README.md
+      batch:
+        send_batch_size: 50000
+        timeout: 1s
+      # Resource detection processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
+      resourcedetection:
+        # detectors: include ec2/eks for AWS, gcp for GCP and azure/aks for Azure
+        # env detector included below adds custom labels using OTEL_RESOURCE_ATTRIBUTES envvar
+        detectors:
+          - env
+          # - elastic_beanstalk
+          # - eks
+          # - ecs
+          # - ec2
+          # - gcp
+          # - azure
+          # - heroku
+          - system
+        timeout: 2s
+        system:
+          hostname_sources: [dns, os]
+      # Memory Limiter processor.
+      # If set to null, will be overridden with values based on k8s resource limits.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
+      memory_limiter: null
+      signozspanmetrics/cumulative:
+        metrics_exporter: clickhousemetricswrite
+        latency_histogram_buckets:
+          [
+            100us,
+            1ms,
+            2ms,
+            6ms,
+            10ms,
+            50ms,
+            100ms,
+            250ms,
+            500ms,
+            1000ms,
+            1400ms,
+            2000ms,
+            5s,
+            10s,
+            20s,
+            40s,
+            60s,
+          ]
+        dimensions_cache_size: 100000
+        dimensions:
+          - name: service.namespace
+            default: default
+          - name: deployment.environment
+            default: default
+          - name: signoz.collector.id
+      signozspanmetrics/delta:
+        metrics_exporter: clickhousemetricswrite
+        latency_histogram_buckets:
+          [
+            100us,
+            1ms,
+            2ms,
+            6ms,
+            10ms,
+            50ms,
+            100ms,
+            250ms,
+            500ms,
+            1000ms,
+            1400ms,
+            2000ms,
+            5s,
+            10s,
+            20s,
+            40s,
+            60s,
+          ]
+        dimensions_cache_size: 100000
+        dimensions:
+          - name: service.namespace
+            default: default
+          - name: deployment.environment
+            default: default
+          - name: signoz.collector.id
+        aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
+      # K8s Attribute processor config.
+      # ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md
+      k8sattributes:
+        # -- Whether to detect the IP address of agents and add it as an attribute to all telemetry resources.
+        # If set to true, Agents will not make any k8s API calls, do any discovery of pods or extract any metadata.
+        passthrough: false
+        # -- Filters can be used to limit each OpenTelemetry agent to query pods based on specific
+        # selector to only dramatically reducing resource requirements for very large clusters.
+        filter:
+          # -- Restrict each OpenTelemetry agent to query pods running on the same node
+          node_from_env_var: K8S_NODE_NAME
+        pod_association:
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.uid
+          - sources:
+            - from: connection
+        extract:
+          metadata:
+            - k8s.namespace.name
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.pod.start_time
+            - k8s.deployment.name
+            - k8s.node.name
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      zpages:
+        endpoint: localhost:55679
+      pprof:
+        endpoint: localhost:1777
+    exporters:
+      clickhousetraces:
+        datasource: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_TRACE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        low_cardinal_exception_grouping: ${LOW_CARDINAL_EXCEPTION_GROUPING}
+      clickhousemetricswrite:
+        endpoint: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?database=${CLICKHOUSE_DATABASE}&username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        resource_to_telemetry_conversion:
+          enabled: true
+      clickhouselogsexporter:
+        dsn: tcp://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}/?username=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}
+        timeout: 10s
+      prometheus:
+        endpoint: 0.0.0.0:8889
+    service:
+      telemetry:
+        metrics:
+          address: 0.0.0.0:8888
+      extensions: [health_check, zpages, pprof]
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger]
+          processors: [signozspanmetrics/cumulative, signozspanmetrics/delta, batch]
+          exporters: [clickhousetraces]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [clickhousemetricswrite]
+        metrics/internal:
+          receivers: [hostmetrics]
+          processors: [resourcedetection, k8sattributes, batch]
+          exporters: [clickhousemetricswrite]
+        logs:
+          receivers: [otlp, httplogreceiver/heroku, httplogreceiver/json]
+          processors: [batch]
+          exporters: [clickhouselogsexporter]
+
+otelCollectorMetrics:
+  name: "otel-collector-metrics"
+
+  # OtelCollectorMetrics service
+  service:
+    # -- Annotations to use by service associated to OtelCollectorMetrics
+    annotations: {}
+    # -- Service Type: LoadBalancer (allows external access) or NodePort (more secure, no extra cost)
+    type: ClusterIP
+
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    # limits:
+    #   cpu: "1"
+    #   memory: 2Gi
+
+# Default values for k8s-infra.
+# For complete list of configurations, check `values.yaml` of `k8s-infra` chart.
+# @ignored
+k8s-infra:
+  enabled: true
+  otelInsecure: true
+  insecureSkipVerify: false
+
+  # -- API key of SigNoz SaaS
+  signozApiKey: ""
+
+  # -- Presets to easily set up OtelCollector configurations.
+  presets:
+    loggingExporter:
+      enabled: false
+    logsCollection:
+      enabled: true
+    hostMetrics:
+      enabled: true
+    kubeletMetrics:
+      enabled: true
+    kubernetesAttributes:
+      enabled: true
+    clusterMetrics:
+      enabled: true
+    resourceDetectionInternal:
+      enabled: true
+    resourceDetection:
+      enabled: true
+
+  otelAgent:
+    name: "otel-agent"
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+
+  otelDeployment:
+    name: "otel-deployment"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
