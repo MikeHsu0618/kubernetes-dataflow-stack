@@ -232,6 +232,6 @@ ruler:
             rules:
               - record: demo:AAAA:rate1m
                 expr: |
-									# group by 可以轉變為 meetrics labels
+									# group by 可以轉變為 meetric labels
                   sum by(app) (rate({namespace="logging"} [1m]))
 ```
