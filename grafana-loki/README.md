@@ -234,4 +234,10 @@ ruler:
                 expr: |
 									# group by 可以轉變為 meetric labels
                   sum by(app) (rate({namespace="logging"} [1m]))
+              - alert: loki-test-alert
+                expr: |
+                  sum(rate({namespace=~"logging|monitoring"} [1m])) > 0
+                for: 1m
+                labels: 
+                  severity: critical
 ```
