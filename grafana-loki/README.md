@@ -218,6 +218,8 @@ structuredConfig:
         enabled: true
         client:
           url: http://sit-prome-prometheus.prome:9090/api/v1/write
+      alertmanager_url: http://alertmanager-operated.monitoring:9093
+      external_url: http://your-grafana.domin.com
 
 ruler:
   enabled: true
