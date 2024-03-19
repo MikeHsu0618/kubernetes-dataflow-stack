@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: ethtool-exporter
+  labels:
+    app: ethtool-exporter
+    release: prometheus-stack
+spec:
+  jobLabel: pod-template-hash
+  podMetricsEndpoints:
+    - honorLabels: false
+      honorTimestamps: true
+      path: /metrics
+      port: http
+  selector:
+    matchLabels:
+      app: ethtool-exporter
