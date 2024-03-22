@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ethtool-exporter
+  namespace: {{ .Values.namespaceOverride | default "kube-system" }}
+  labels:
+    app: ethtool-exporter
+spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 100%
+  selector:
+    matchLabels:
+      app: ethtool-exporter
+  template:
+    metadata:
+      labels:
+        app: ethtool-exporter
+    spec:
+      hostNetwork: true
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: ethtool-exporter
+        env:
+        - name: IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP      
+        image: drdivano/ethtool-exporter@sha256:39e0916b16de07f62c2becb917c94cbb3a6e124a577e1325505e4d0cdd550d7b
+        command:
+          - "sh"
+          - "-exc"
+          - "python3 /ethtool-exporter.py -l $(IP):9417 -I '(eth|em|eno|ens|enp)[0-9s]+'"
+        ports:
+        - containerPort: 9417
+          hostPort: 9417
+          name: http
+
+        resources:
+          {{- include "ethtool-exporter.resources" . | nindent 12 }}
+
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ethtool-exporter
+  namespace: {{ .Values.namespaceOverride | default "kube-system" }}
+  labels:
+    app: ethtool-exporter
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: 9417
+  selector:
+    app: ethtool-exporter

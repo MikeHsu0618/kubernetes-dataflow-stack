@@ -1,0 +1,12 @@
+# Override the daemonset namespace.
+# @default "kube-system"
+namespaceOverride: ""
+
+resources: {}
+#  resources:
+#    limits:
+#      cpu: 250m
+#      memory: 100Mi
+#    requests:
+#      cpu: 10m
+#      memory: 50Mi
