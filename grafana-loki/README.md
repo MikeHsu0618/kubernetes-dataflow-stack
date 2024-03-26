@@ -243,3 +243,81 @@ ruler:
                 labels: 
                   severity: critical
 ```
+
+```
+loki:
+  schemaConfig:
+    configs:
+      - from: "2023-10-17"
+        index:
+          period: 24h
+          prefix: loki_index_
+        object_store: gcs
+        schema: v11
+        store: tsdb
+  storageConfig:
+    boltdb_shipper:
+      active_index_directory: /var/loki/index
+      cache_location: /var/loki/cache
+      cache_ttl: 168h
+      shared_store: gcs
+    tsdb_shipper:
+      active_index_directory: /var/loki/tsdb-index
+      cache_location: /var/loki/tsdb-cache
+      shared_store: gcs
+    gcs:
+      bucket_name: prod-loki-logging-bucket
+  server:
+    grpc_server_max_recv_msg_size: 8388608
+    grpc_server_max_send_msg_size: 8388608
+    http_listen_port: 3100
+    http_server_read_timeout: 300s
+    http_server_write_timeout: 300s
+
+  structuredConfig:
+    common:
+      replication_factor: 1
+    auth_enabled: true
+    analytics:
+      reporting_enabled: false
+    compactor:
+      shared_store: gcs
+      retention_enabled: true
+    ingester:
+      autoforget_unhealthy: true
+      wal:
+        checkpoint_duration: 3m
+    ingester_client:
+      remote_timeout: 10s
+    limits_config:
+      ingestion_burst_size_mb: 250
+      ingestion_rate_mb: 200
+      ingestion_rate_strategy: local
+      max_streams_per_user: 1000000
+      per_stream_rate_limit: 5MB
+      query_timeout: 5m
+      retention_period: 30d
+      max_global_streams_per_user: 0
+      shard_streams:
+        enabled: false
+        desired_rate: 3MB
+    querier:
+      max_concurrent: 16
+      query_ingesters_within: 1h
+    query_scheduler:
+      max_outstanding_requests_per_tenant: 32768
+    chunk_store_config:
+      chunk_cache_config:
+        memcached:
+          batch_size: 10
+          parallelism: 10
+        memcached_client:
+          timeout: 60s
+
+runtimeConfig:
+  overrides:
+    tenant1:
+      retention_period: 60d
+    tenant2:
+      retention_period: 7d
+```
