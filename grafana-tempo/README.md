@@ -17,3 +17,18 @@ gateway:
       proxy_read_timeout 600s;
       proxy_send_timeout 600s;
 ```
+
+Tempo 2.4 new configuration format:
+```
+overrides: |
+  overrides: 
+    "*":
+      ingestion:
+        burst_size_bytes: 200000000
+        rate_limit_bytes: 150000000
+      metrics_generator:
+        processors:
+          - service-graphs
+          - span-metrics
+          - local-blocks
+```
