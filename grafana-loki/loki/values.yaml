@@ -1,0 +1,291 @@
+fullnameOverride: loki
+clusterLabelOverride: null
+deploymentMode: Distributed
+
+loki:
+  auth_enabled: false
+  memberlistConfig: {}
+  extraMemberlistConfig: {}
+  tenants: []
+  server:
+    http_listen_port: 3100
+    grpc_listen_port: 9095
+    http_server_read_timeout: 600s
+    http_server_write_timeout: 600s
+  limits_config:
+    reject_old_samples: true
+    reject_old_samples_max_age: 168h
+    max_cache_freshness_per_query: 10m
+    split_queries_by_interval: 15m
+    query_timeout: 300s
+    volume_enabled: true
+    bloom_gateway_enable_filtering: true
+    bloom_compactor_enable_compaction: true
+  runtimeConfig: {}
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: s3
+  memcached:
+    chunk_cache:
+      enabled: false
+      batch_size: 256
+      parallelism: 10
+    results_cache:
+      enabled: false
+      timeout: "500ms"
+      default_validity: "12h"
+  schemaConfig:
+    configs:
+      - from: 2024-04-01
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+  rulerConfig: {}
+  structuredConfig:
+    pattern_ingester:
+      enabled: true
+  query_scheduler: {}
+  storage_config:
+    boltdb_shipper:
+      index_gateway_client:
+        server_address: '{{ include "loki.indexGatewayAddress" . }}'
+    tsdb_shipper:
+      index_gateway_client:
+        server_address: '{{ include "loki.indexGatewayAddress" . }}'
+    hedging:
+      at: "250ms"
+      max_per_second: 20
+      up_to: 3
+  compactor: {}
+  analytics: {}
+  query_range: {}
+  querier: {}
+  ingester: {}
+  index_gateway:
+    mode: simple
+  distributor: {}
+  tracing:
+    enabled: false
+
+test:
+  enabled: false
+  canaryServiceAddress: "http://loki-canary:3500/metrics"
+lokiCanary:
+  enabled: false
+  push: true
+
+gateway:
+  enabled: true
+  replicas: 1
+  verboseLogging: true
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage:
+  basicAuth:
+    enabled: false
+    username: null
+    password: null
+
+migrate:
+  fromDistributed:
+    enabled: false
+    memberlistService: ""
+
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
+ingester:
+  replicas: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: null
+  resources: {}
+  persistence:
+    enabled: false
+    claims:
+      - name: data
+        size: 10Gi
+        storageClass: null
+    enableStatefulSetAutoDeletePVC: false
+    whenDeleted: Retain
+    whenScaled: Retain
+  zoneAwareReplication:
+    enabled: false
+    maxUnavailablePct: 0
+    migration:
+      enabled: true
+      excludeDefaultZone: false
+      readPath: true
+      writePath: true
+
+distributor:
+  replicas: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: null
+
+querier:
+  replicas: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: null
+
+queryFrontend:
+  replicas: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: null
+
+queryScheduler:
+  replicas: 1
+
+indexGateway:
+  replicas: 1
+  persistence:
+    enabled: false
+    size: 10Gi
+    storageClass: null
+    enableStatefulSetAutoDeletePVC: false
+    whenDeleted: Retain
+    whenScaled: Retain
+
+compactor:
+  replicas: 1
+  persistence:
+    enabled: false
+    size: 10Gi
+    storageClass: null
+    claims:
+      - name: data
+        size: 10Gi
+        storageClass: null
+    enableStatefulSetAutoDeletePVC: false
+    whenDeleted: Retain
+    whenScaled: Retain
+
+bloomGateway:
+  replicas: 1
+  persistence:
+    enabled: false
+    size: 10Gi
+    storageClass: null
+    claims:
+      - name: data
+        size: 10Gi
+        storageClass: null
+    enableStatefulSetAutoDeletePVC: false
+    whenDeleted: Retain
+    whenScaled: Retain
+
+bloomCompactor:
+  replicas: 1
+  persistence:
+    enabled: false
+    size: 10Gi
+    storageClass: null
+    claims:
+      - name: data
+        size: 10Gi
+        storageClass: null
+    enableStatefulSetAutoDeletePVC: false
+    whenDeleted: Retain
+    whenScaled: Retain
+
+patternIngester:
+  replicas: 1
+  persistence:
+    enabled: false
+    size: 10Gi
+    storageClass: null
+    claims:
+      - name: data
+        size: 10Gi
+        storageClass: null
+    enableStatefulSetAutoDeletePVC: false
+    whenDeleted: Retain
+    whenScaled: Retain
+
+ruler:
+  enabled: false
+  replicas: 0
+
+memcached:
+  image:
+    repository: memcached
+    tag: 1.6.23-alpine
+
+memcachedExporter:
+  enabled: true
+
+resultsCache:
+  enabled: true
+  defaultValidity: 12h
+  timeout: 500ms
+  replicas: 1
+  allocatedMemory: 600
+  maxItemMemory: 5
+  connectionLimit: 16384
+  writebackSizeLimit: 500MB
+  writebackBuffer: 500000
+  writebackParallelism: 1
+
+chunksCache:
+  enabled: true
+  batchSize: 4
+  parallelism: 5
+  timeout: 2000ms
+  defaultValidity: 0s
+  replicas: 1
+  allocatedMemory: 600
+  maxItemMemory: 5
+  connectionLimit: 16384
+  writebackSizeLimit: 500MB
+  writebackBuffer: 500000
+  writebackParallelism: 1
+  resources: null
+
+rollout_operator:
+  enabled: true
+
+minio:
+  enabled: true
+  replicas: 1
+
+monitoring:
+  dashboards:
+    enabled: ture
+  rules:
+    enabled: false
+    alerting: true
+    disabled: {}
+    additionalRuleLabels: {}
+    additionalGroups: []
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: prometheus-stack
+  selfMonitoring:
+    enabled: false
