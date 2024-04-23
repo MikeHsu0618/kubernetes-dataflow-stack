@@ -297,6 +297,9 @@ loki:
       per_stream_rate_limit: 5MB
       query_timeout: 5m
       retention_period: 30d
+      retention_stream:
+        - selector: '{service=~"access-log|error-log"}'
+          period: 2d
       max_global_streams_per_user: 0
       shard_streams:
         enabled: false
