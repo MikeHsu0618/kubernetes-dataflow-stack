@@ -214,6 +214,11 @@ structuredConfig:
       wal:
 				# write the WAL to writable location
         dir: /var/loki/wal
+      # https://github.com/grafana/helm-charts/issues/537
+      storage:
+        type: local
+        local:
+          directory: /etc/loki/rules
       remote_write:
         enabled: true
         client:
