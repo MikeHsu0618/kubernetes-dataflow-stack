@@ -1,0 +1,108 @@
+fullnameOverride: alloy-collector
+
+crds:
+  create: false
+
+alloy:
+  extraEnv:
+    - name: LOKI_HOST
+      value: "loki-distributor.loki:3100"
+  configMap:
+    create: true
+    content: |
+      logging {
+      	level  = "debug"
+      	format = "logfmt"
+      }
+      otelcol.exporter.otlp "local" {
+        client {
+          endpoint = "tempo-distributor.tracing:4317"
+          tls {
+            insecure             = true
+            insecure_skip_verify = true
+          }
+        }
+      }
+      loki.write "loki" {
+        endpoint {
+          url = format("http://%s/loki/api/v1/push", env("LOKI_HOST"))
+        }
+      }
+      loki.source.api "logs" {
+        http {
+          listen_address = "0.0.0.0"
+          listen_port = 9999
+          conn_limit = 300
+        }
+        use_incoming_timestamp = true
+        forward_to = [
+          loki.write.loki.receiver,
+        ]
+        labels = {
+          cluster= env("CLUSTER_NAME"),
+        }
+      }
+      otelcol.processor.k8sattributes "default" {
+        output {
+          traces  = [otelcol.exporter.otlp.local.input]
+        } 
+      }
+      otelcol.exporter.otlphttp "local" {
+        client {
+          endpoint = "http://tempo-gateway.tracing"
+          tls {
+            insecure             = true
+            insecure_skip_verify = true
+          }
+        }
+      }
+      
+      otelcol.receiver.otlp "default" {
+        grpc {}
+        http {}
+        output {
+          metrics = []
+          logs = []
+          traces = [otelcol.processor.k8sattributes.default.input]
+        }
+      }
+
+  extraPorts:
+    - name: "otlp-grpc"
+      port: 4317
+      targetPort: 4317
+      protocol: "TCP"
+    - name: "otlp-http"
+      port: 4318
+      targetPort: 4318
+      protocol: "TCP"
+    - name: "loki"
+      port: 9999
+      targetPort: 9999
+      protocol: "TCP"
+
+  clustering:
+    enabled: true
+  stabilityLevel: "generally-available"
+  # -- Path to where Grafana Alloy stores data (for example, the Write-Ahead Log).
+  # By default, data is lost between reboots.
+  storagePath: /tmp/alloy
+  enableReporting: false
+
+
+controller:
+  type: 'statefulset'
+  replicas: 5
+
+service:
+  enabled: true
+
+serviceMonitor:
+  enabled: true
+
+ingress:
+  # -- Enables ingress for Alloy (Faro port)
+  enabled: ture
+  path: /
+  faroPort: 9999
+  host: []
