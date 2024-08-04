@@ -1,0 +1,159 @@
+base_url: localhost:8080
+base_url_protocol: http
+fullnameOverride: "oncall"
+
+# Whether to create additional service for external connections
+# ClusterIP service is always created
+service:
+  enabled: true
+  type: LoadBalancer
+  port: 8080
+  annotations: {}
+
+# Engine pods configuration
+engine:
+  replicaCount: 1
+  resources:
+    {}
+
+detached_integrations_service:
+  enabled: false
+  type: LoadBalancer
+  port: 8080
+  annotations: {}
+
+# Integrations pods configuration
+detached_integrations:
+  enabled: false
+  replicaCount: 1
+  resources:
+    {}
+
+# Celery workers pods configuration
+celery:
+  replicaCount: 1
+  worker_queue: "default,critical,long,slack,telegram,webhook,celery,grafana,retry"
+  worker_concurrency: "1"
+  worker_max_tasks_per_child: "100"
+  worker_beat_enabled: "True"
+  ## Restart of the celery workers once in a given interval as an additional precaution to the probes
+  ## If this setting is enabled TERM signal will be sent to celery workers
+  ## It will lead to warm shutdown (waiting for the tasks to complete) and restart the container
+  ## If this setting is set numbers of pod restarts will increase
+  ## Comment this line out if you want to remove restarts
+  worker_shutdown_interval: "65m"
+
+# Telegram polling pod configuration
+telegramPolling:
+  enabled: false
+
+oncall:
+  # this is intended to be used for local development. In short, it will mount the ./engine dir into
+  # any backend related containers, to allow hot-reloading + also run the containers with slightly modified
+  # startup commands (which configures the hot-reloading)
+  devMode: false
+
+  # Slack configures the Grafana Oncall Slack ChatOps integration.
+  slack:
+    # Enable the Slack ChatOps integration for the Oncall Engine.
+    enabled: false
+
+  telegram:
+    enabled: false
+
+  smtp:
+    enabled: true
+
+  exporter:
+    enabled: false
+    authToken: ~
+
+# Whether to run django database migrations automatically
+migrate:
+  enabled: true
+
+# Sets environment variables with name capitalized and prefixed with UWSGI_,
+# and dashes are substituted with underscores.
+# see more: https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#environment-variables
+# Set null to disable all UWSGI environment variables
+uwsgi:
+  listen: 1024
+
+# Additional env variables to add to deployments
+env: {}
+
+# Enable ingress object for external access to the resources
+ingress:
+  enabled: false
+
+# Whether to install ingress controller
+ingress-nginx:
+  enabled: false
+
+# Install cert-manager as a part of the release
+cert-manager:
+  enabled: false
+
+database:
+  type: mysql
+
+# MySQL is included into this release for the convenience.
+# It is recommended to host it separately from this release
+# Set mariadb.enabled = false and configure externalMysql
+mariadb:
+  enabled: true
+  auth:
+    database: oncall
+    existingSecret:
+  primary:
+    extraEnvVars:
+      - name: MARIADB_COLLATE
+        value: utf8mb4_unicode_ci
+      - name: MARIADB_CHARACTER_SET
+        value: utf8mb4
+  secondary:
+    extraEnvVars:
+      - name: MARIADB_COLLATE
+        value: utf8mb4_unicode_ci
+      - name: MARIADB_CHARACTER_SET
+        value: utf8mb4
+
+# RabbitMQ is included into this release for the convenience.
+# It is recommended to host it separately from this release
+# Set rabbitmq.enabled = false and configure externalRabbitmq
+rabbitmq:
+  enabled: false
+
+broker:
+  type: redis
+
+# Redis is included into this release for the convenience.
+# It is recommended to host it separately from this release
+redis:
+  enabled: true
+  architecture: standalone
+
+grafana:
+  enabled: true
+  grafana.ini:
+    server:
+      domain: localhost
+      root_url: "%(protocol)s://%(domain)s/"
+      serve_from_sub_path: true
+
+externalGrafana:
+  url: http://prometheus-stack-grafana.prometheus:3000
+
+
+ui:
+  # this is intended to be used for local development. In short, it will spin up an additional container
+  # running the plugin frontend, such that hot reloading can be enabled
+  enabled: false
+  image:
+    repository: oncall/ui
+    tag: dev
+  # Additional env vars for the ui container
+  env: {}
+
+prometheus:
+  enabled: false
