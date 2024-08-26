@@ -1,9 +1,62 @@
-rbac:
-  create: true
-  ## Use an existing ClusterRole/Role (depending on rbac.namespaced false/true)
-  # useExistingRole: name-of-some-(cluster)role
-  pspEnabled: false
-  pspUseAppArmor: false
-
 adminUser: admin
-adminPassword: strongpassword
+adminPassword: admin
+
+defaultDashboardsEnabled: true
+defaultDashboardsTimezone: Asia/Taipei
+
+
+image:
+  tag: main
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo-gateway.tracing
+        isDefault: false
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.loki
+        isDefault: false
+
+grafana.ini:
+  feature_toggles:
+    correlations: true
+    editPanelCSVDragAndDrop: true
+    enableDatagridEditing: true
+    exploreMixedDatasource: true
+    nestedFolders: true
+    newTraceViewHeader: true
+    publicDashboards: true
+    traceToMetrics: true
+    featureToggleAdminPage: true
+    traceQLStreaming: true
+    metricsSummary: true
+    autoMigrateOldPanels: true
+    autoMigrateGraphPanel: true
+    autoMigrateTablePanel: true
+    autoMigratePiechartPanel: true
+    autoMigrateWorldmapPanel: true
+    autoMigrateStatPanel: true
+    autoMigrateXYChartPanel: true
+    alertStateHistoryLokiSecondary: true
+    alertStateHistoryLokiPrimary: true
+    alertStateHistoryLokiOnly: true
+    alertingCentralAlertHistory: true
+  users:
+    viewers_can_edit: true
+  unified_alerting.state_history:
+    enabled: true
+    backend: "loki"
+    loki_remote_url: "http://loki-gateway.loki"
+
+persistence:
+  accessModes:
+    - ReadWriteOnce
+  enabled: true
+  size: 10Gi
+  type: pvc
