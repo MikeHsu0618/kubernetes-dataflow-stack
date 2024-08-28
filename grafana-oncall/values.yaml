@@ -1,11 +1,11 @@
-base_url: localhost:8080
+base_url: oncall-engine.oncall:8080
 base_url_protocol: http
 fullnameOverride: "oncall"
 
 # Whether to create additional service for external connections
 # ClusterIP service is always created
 service:
-  enabled: true
+  enabled: false
   type: LoadBalancer
   port: 8080
   annotations: {}
@@ -24,7 +24,7 @@ detached_integrations_service:
 
 # Integrations pods configuration
 detached_integrations:
-  enabled: false
+  enabled: true
   replicaCount: 1
   resources:
     {}
@@ -51,12 +51,12 @@ oncall:
   # this is intended to be used for local development. In short, it will mount the ./engine dir into
   # any backend related containers, to allow hot-reloading + also run the containers with slightly modified
   # startup commands (which configures the hot-reloading)
-  devMode: false
+  devMode: true
 
   # Slack configures the Grafana Oncall Slack ChatOps integration.
   slack:
     # Enable the Slack ChatOps integration for the Oncall Engine.
-    enabled: false
+    enabled: true
 
   telegram:
     enabled: false
@@ -97,11 +97,18 @@ cert-manager:
 database:
   type: mysql
 
+externalMysql:
+  db_name: oncall
+  host: mysql.mysql
+  password: ot0kCNkmU8
+  port: 3306
+  user: root
+
 # MySQL is included into this release for the convenience.
 # It is recommended to host it separately from this release
 # Set mariadb.enabled = false and configure externalMysql
 mariadb:
-  enabled: true
+  enabled: false
   auth:
     database: oncall
     existingSecret:
@@ -134,7 +141,7 @@ redis:
   architecture: standalone
 
 grafana:
-  enabled: true
+  enabled: false
   grafana.ini:
     server:
       domain: localhost
@@ -142,7 +149,7 @@ grafana:
       serve_from_sub_path: true
 
 externalGrafana:
-  url: http://prometheus-stack-grafana.prometheus:3000
+  url: http://grafana.grafana
 
 
 ui:

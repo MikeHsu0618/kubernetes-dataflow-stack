@@ -1,3 +1,8 @@
+Grafana install:
+```
+helm upgrade --install grafana  grafana/grafana -n grafana --create-namespace -f values.yaml
+```
+
 google oauth2 authentication for grafana:
 ```
   grafana.ini:
