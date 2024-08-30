@@ -1,0 +1,64 @@
+fullnameOverride: "memcache"
+
+architecture: high-availability
+
+image:
+  repository: memcached
+  tag: 1.6.14
+
+
+command: []
+## @param args Override default container args (useful when using custom images)
+## e.g:
+## args:
+##   - /run.sh
+##   - -m <maxMemoryLimit>
+##   - -I <maxItemSize>
+##   - -vv
+##
+args:
+#  - /run.sh
+  - -vvv
+  - --extended ext_path=/cache-status/test:1G,ext_wbuf_size=32,ext_threads=10,ext_max_sleep=10000,slab_automove_freeratio=0.10,ext_recache_rate=0
+
+## @param extraEnvVars Array with extra environment variables to add to Memcached nodes
+## e.g:
+## extraEnvVars:
+##   - name: FOO
+##     value: "bar"
+##
+extraEnvVars:
+  - name: MEMCACHED_CACHE_SIZE
+    value: "100"
+  - name: MEMCACHED_MAX_ITEM_SIZE
+    value: 2m
+  - name: ENABLE_EXT_STORE
+    value: "true"
+  - name: EXT_STORE_SIZE
+    value: "1G"
+
+
+replicaCount: 1
+
+extraVolumes: []
+## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Memcached container(s)
+## Example Use Case: mount certificates to enable TLS
+## e.g:
+## extraVolumeMounts:
+## - name: zookeeper-keystore
+##   mountPath: /certs/keystore
+##   readOnly: true
+## - name: zookeeper-truststore
+##   mountPath: /certs/truststore
+##   readOnly: true
+##
+#extraVolumeMounts:
+#  - name: data
+#    mountPath: /disk/extstore
+#    readOnly: false
+
+enableServiceLinks: true
+persistence:
+  enabled: true
+  storageClass: ""
+  size: 1Gi

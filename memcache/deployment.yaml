@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memcached
+  labels:
+    app: memcached
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: memcached
+  template:
+    metadata:
+      labels:
+        app: memcached
+    spec:
+      containers:
+        - name: memcached
+          image: memcached:1.6.23
+          args:
+            - "-m"
+            - "600"
+            - "-vvv"
+            - "-I"
+            - "2m"
+            - "-o"
+            - "ext_path=/disk/extstore/test:1G,ext_wbuf_size=32,ext_threads=10,ext_max_sleep=10000,slab_automove_freeratio=0.10,ext_recache_rate=0"
+          ports:
+            - containerPort: 11211
+          volumeMounts:
+            - name: extstore
+              mountPath: /disk/extstore
+      volumes:
+        - name: extstore
+          persistentVolumeClaim:
+            claimName: extstore-pvc
