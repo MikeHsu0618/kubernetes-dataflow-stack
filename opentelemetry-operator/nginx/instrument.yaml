@@ -1,0 +1,21 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: demo-instrumentation
+  namespace: opentelemetry
+spec:
+  exporter:
+    endpoint: http://observability-cluster-collector-pub-uat-misc.k8s.uat.sportybet2.com/otlp
+  propagators:
+    - tracecontext
+    - baggage
+  # https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_traces_sampler
+  sampler:
+    type: parentbased_always_on
+#    argument: "1"
+  nginx:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-apache-httpd:1.0.4
+#    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd:latest
+    attrs:
+      - name: NginxModuleTraceAsError
+        value: "OFF"

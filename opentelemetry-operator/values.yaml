@@ -1,17 +1,31 @@
 replicaCount: 1
 
-nameOverride: "opentelemetry-operator"
+fullnameOverride: "opentelemetry-operator"
 
 manager:
+  collectorImage:
+    repository: "otel/opentelemetry-collector-k8s"
   autoInstrumentationImage:
     java: {}
     nodejs: {}
     python: {}
     dotnet: {}
     go: {}
-  # A full list of valud identifiers can be found here: https://github.com/open-telemetry/opentelemetry-operator/blob/main/pkg/featuregate/featuregate.go
-  featureGates: "operator.autoinstrumentation.go"
-
+  # A full list of valid identifiers can be found here: https://github.com/open-telemetry/opentelemetry-operator/blob/main/pkg/featuregate/featuregate.go
+  # NOTE: the featureGates value is deprecated and will be replaced by featureGatesMap in the future.
+  featureGates: ""
+  # The featureGatesMap will enable or disable specific feature gates in the operator as well as deploy any prerequisites for the feature gate.
+  # If this property is not an empty map, the featureGates property will be ignored.
+  featureGatesMap:
+#    FlagNginx: true
+    # targetAllocatorMtls: false
+    # targetAllocatorCR: false
+    # nativeSideCarContainers: false
+    # prometheusOperator: false
+    # golangFlags: false
+    # collectorDefaultConfig: false
+  extraArgs:
+    - "--enable-nginx-instrumentation"
   serviceMonitor:
     enabled: false
   prometheusRule:
@@ -22,4 +36,6 @@ admissionWebhooks:
   create: true
   certManager:
     enabled: false
-  autoGenerateCert: true
+  autoGenerateCert:
+    enabled: true
+    recreate: false

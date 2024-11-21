@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: opentelemetry
+  labels:
+    type: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      type: demo
+  template:
+    metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-nginx: "true"
+      labels:
+        type: demo
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      containers:
+        - name: nginx
+#          image: nginxinc/nginx-unprivileged:1.25.3
+          image: nginx:1.25.3
+#          image: nginx:1.23.1
+#          image: od8ssa/nginx-otel
+#          image: 942878658013.dkr.ecr.eu-central-1.amazonaws.com/third-party/nginx-with-modules-ubuntu:1.23.1-otel-with-upstream-checker
+#          image: mikehsu0618/nginx:1.24.0-otel
+#          command: ["tail", "-f", "/dev/null"]
+          ports:
+            - containerPort: 80
+#          volumeMounts:
+#            - name: opentelemetry-module-conf
+#              mountPath: /etc/nginx/conf.d/opentelemetry_module.conf
+#              subPath: opentelemetry_module.conf
+#              readOnly: true
+#            - name: nginx-conf
+#              mountPath: /etc/nginx/nginx.conf
+#              subPath: nginx.conf
+#              readOnly: true
+#      volumes:
+#        - name: opentelemetry-module-conf
+#          configMap:
+#            name: opentelemetry-module-conf
+#            items:
+#              - key: opentelemetry_module.conf
+#                path: opentelemetry_module.conf
+#        - name: nginx-conf
+#          configMap:
+#            name: nginx-conf
+#            items:
+#              - key: nginx.conf
+#                path: nginx.conf
+#
+#---
+#
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: opentelemetry-module-conf
+#  namespace: opentelemetry
+#data:
+#  opentelemetry_module.conf: |
+#    NginxModuleOtelSpanExporter otlp;
+#    NginxModuleOtelExporterEndpoint tempo-distributor:4317;
+#    NginxModuleServiceName Nginx;
+#    NginxModuleServiceNamespace Nonprod;
+#    NginxModuleServiceInstanceId Gateway;
+#    NginxModuleResolveBackends ON;
+#    NginxModuleTraceAsError ON;
+#
+#
+#
+#---
+#
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: nginx-conf
+#  namespace: opentelemetry
+#data:
+#  nginx.conf: |
+#    # user nginx;
+#    worker_processes  1;
+#    pid /tmp/nginx.pid;
+#    load_module /opt/opentelemetry-webserver-sdk/WebServerModule/Nginx/1.23.1/ngx_http_opentelemetry_module.so;
+#
+#    events {
+#      worker_connections  10240;
+#    }
+#    http {
+#      include /etc/nginx/conf.d/opentelemetry_module.conf;
+#      client_body_temp_path /tmp/client_temp;
+#      proxy_temp_path       /tmp/proxy_temp_path;
+#      fastcgi_temp_path     /tmp/fastcgi_temp;
+#      uwsgi_temp_path       /tmp/uwsgi_temp;
+#      scgi_temp_path        /tmp/scgi_temp;
+#      server {
+#        listen       80;
+#        server_name  localhost;
+#        location / {
+#          root   /usr/share/nginx/html;
+#          index  index.html index.htm;
+#        }
+#
+#        location /test {
+#          root   /usr/share/nginx/html;
+#          index  index.html index.htm;
+#        }
+#
+#        location /api/customer/ {
+#          proxy_pass http://localhost:8282/api/customer/;
+#        }
+#        location /api/vendor/ {
+#          proxy_pass http://localhost:8383/api/vendor/;
+#        }
+#
+#        location /seznam {
+#          proxy_pass http://www.seznam.cz/;
+#        }
+#      }
+#
+#    }
+
