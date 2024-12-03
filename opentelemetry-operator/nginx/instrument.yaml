@@ -5,7 +5,7 @@ metadata:
   namespace: opentelemetry
 spec:
   exporter:
-    endpoint: http://observability-cluster-collector-pub-uat-misc.k8s.uat.sportybet2.com/otlp
+    endpoint: http://tempo-distributor.tempo:4317
   propagators:
     - tracecontext
     - baggage
