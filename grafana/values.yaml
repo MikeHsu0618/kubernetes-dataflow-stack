@@ -40,13 +40,6 @@ grafana.ini:
     featureToggleAdminPage: true
     traceQLStreaming: true
     metricsSummary: true
-    autoMigrateOldPanels: true
-    autoMigrateGraphPanel: true
-    autoMigrateTablePanel: true
-    autoMigratePiechartPanel: true
-    autoMigrateWorldmapPanel: true
-    autoMigrateStatPanel: true
-    autoMigrateXYChartPanel: true
     alertStateHistoryLokiSecondary: true
     alertStateHistoryLokiPrimary: true
     alertStateHistoryLokiOnly: true
