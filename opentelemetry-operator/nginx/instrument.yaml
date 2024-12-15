@@ -11,7 +11,7 @@ spec:
     - baggage
   # https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_traces_sampler
   sampler:
-    type: parentbased_always_on
+    type: always_off # seems not to be workable
 #    argument: "1"
   nginx:
     image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-apache-httpd:1.0.4
@@ -19,3 +19,6 @@ spec:
     attrs:
       - name: NginxModuleTraceAsError
         value: "OFF"
+        # https://github.com/open-telemetry/opentelemetry-cpp-contrib/blob/41081afd5e5d0caa364a8fbffa09855c6e9f7f57/instrumentation/otel-webserver-module/README.md?plain=1#L49
+      - name: NginxModuleOtelSampler
+        value: "AlwaysOff" # only "AlwaysOff" and "AlwaysOn" are supported currently

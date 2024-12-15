@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: nginx2
   namespace: opentelemetry
   labels:
-    type: demo
+    type: demo2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      type: demo
+      type: demo2
   template:
     metadata:
       annotations:
         instrumentation.opentelemetry.io/inject-nginx: "true"
       labels:
-        type: demo
+        type: demo2
     spec:
       securityContext:
         runAsUser: 0
@@ -26,14 +26,14 @@ spec:
           ports:
             - containerPort: 80
           volumeMounts:
-            - name: nginx-conf
+            - name: nginx-conf2
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
               readOnly: true
       volumes:
-        - name: nginx-conf
+        - name: nginx-conf2
           configMap:
-            name: nginx-conf
+            name: nginx-conf2
             items:
               - key: nginx.conf
                 path: nginx.conf
@@ -41,58 +41,51 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: nginx2-service
   namespace: opentelemetry
 spec:
   selector:
-    type: demo
+    type: demo2
   ports:
     - protocol: TCP
       port: 80
       targetPort: 80
-
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: nginx-conf
+  name: nginx-conf2
   namespace: opentelemetry
 data:
   nginx.conf: |
     user  nginx;
     worker_processes  auto;
-
+    
     error_log  /var/log/nginx/error.log notice;
     pid        /var/run/nginx.pid;
-
+    
     events {
       worker_connections  1024;
     }
-
+    
+    
     http {
       include       /etc/nginx/mime.types;
       default_type  application/octet-stream;
-
-      # 可選：log_format 及 access_log 設定
-      # log_format main '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" "$http_x_forwarded_for"';
-      # access_log  /var/log/nginx/access.log  main;
-
+    
+      log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+      '$status $body_bytes_sent "$http_referer" '
+      '"$http_user_agent" "$http_x_forwarded_for"';
+    
+      access_log  /var/log/nginx/access.log  main;
+    
       sendfile        on;
+      #tcp_nopush     on;
+    
       keepalive_timeout  65;
-
-      # 在 http 內部定義一個 server 區塊
-      server {
-        listen 80;
-        server_name localhost;
-        location /test {
-          proxy_pass http://nginx2-service;
-        }
-        location / {
-          return 200 'Welcome to Nginx!';
-          add_header Content-Type text/plain;
-        }
-      }
-
+    
+      #gzip  on;
+    
       include /etc/nginx/conf.d/*.conf;
     }
+
