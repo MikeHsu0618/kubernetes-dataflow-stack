@@ -1,0 +1,198 @@
+  logging {
+    level  = "info"
+    format = "logfmt"
+  }
+
+  livedebugging {
+    enabled = true
+  }
+
+  loki.process "label" {
+    stage.logfmt {
+      mapping = {
+        "app" = "app_name",
+        "service_version" = "app_version",
+        "service_environment" = "app_environment",
+        "service_country" = "user_attr_country",
+        "service_platform" = "user_attr_platform",
+        "event_type" = "event_data_type",
+        "kind" = "",
+      }
+    }
+
+    stage.labels {
+      values = {
+        app = "",
+        event_type = "",
+        service_country = "",
+        service_platform = "",
+        service_version = "",
+        service_environment = "",
+        kind = "",
+      }
+    }
+
+    forward_to = [loki.write.loki.receiver]
+  }
+
+  loki.write "loki" {
+    endpoint {
+      tenant_id = env("TENANT_ID")
+      url = format("http://%s/loki/api/v1/push", env("LOKI_HOST"))
+    }
+  }
+
+  loki.source.api "logs" {
+    http {
+      listen_address = "0.0.0.0"
+      listen_port = 9999
+    }
+    use_incoming_timestamp = true
+    forward_to = [
+      loki.write.loki.receiver,
+    ]
+    labels = {
+      cluster= env("CLUSTER_NAME"),
+    }
+  }
+
+  faro.receiver "default" {
+    extra_log_labels = {
+       cluster= env("CLUSTER_NAME"),
+    }
+    server {
+      listen_address = "0.0.0.0"
+      listen_port = 12347
+      max_allowed_payload_size = "10MiB"
+      cors_allowed_origins = ["*"]
+      rate_limiting {
+        enabled = false
+        rate = 1000
+        burst_size = 2000
+      }
+    }
+
+    output {
+      logs   = [loki.process.label.receiver]
+      traces = [otelcol.processor.memory_limiter.default.input]
+    }
+  }
+
+  otelcol.receiver.otlp "default" {
+    http {}
+    grpc {}
+
+    output {
+      metrics = []
+      logs    = [otelcol.processor.memory_limiter.default.input]
+      traces  = [otelcol.processor.memory_limiter.default.input]
+    }
+  }
+
+  otelcol.processor.memory_limiter "default" {
+    check_interval = "5s"
+    limit_percentage = 80
+    spike_limit_percentage = 25
+    output {
+      metrics = []
+      logs    = [otelcol.processor.attributes.default.input ]
+      traces  = [otelcol.processor.probabilistic_sampler.trace_sampler.input]
+    }
+  }
+
+  otelcol.processor.probabilistic_sampler "trace_sampler" {
+    sampling_percentage = 100
+    output {
+      metrics = []
+      logs    = []
+      traces  = [otelcol.processor.attributes.default.input]
+    }
+  }
+
+  otelcol.processor.attributes "default" {
+    action {
+      key = "cluster"
+      value = env("CLUSTER_NAME")
+      action = "insert"
+    }
+    action {
+      key = "http.request.header.authorization"
+      action = "delete"
+    }
+    output {
+      metrics = []
+      logs    = [otelcol.processor.k8sattributes.default.input]
+      traces  = [otelcol.processor.k8sattributes.default.input]
+    }
+  }
+
+  otelcol.processor.k8sattributes "default" {
+    extract {
+      metadata = [
+        "k8s.namespace.name",
+        "k8s.container.name",
+        "k8s.node.name",
+      ]
+    }
+    output {
+      metrics = []
+      logs    = [otelcol.processor.transform.default.input]
+      traces  = [otelcol.processor.transform.default.input]
+    }
+  }
+
+  otelcol.processor.transform "default" {
+    error_mode = "ignore"
+
+    log_statements {
+      context = "log"
+      statements = [
+        `set(resource.attributes["kind"], attributes["kind"])`,
+        `set(resource.attributes["event.type"], attributes["event.type"])`,
+        `delete_key(attributes, "kind")`,
+        `delete_key(attributes, "event.type")`,
+      ]
+    }
+
+    output {
+      metrics = []
+      logs    = [otelcol.processor.batch.default.input]
+      traces  = [otelcol.processor.batch.default.input]
+    }
+  }
+
+  otelcol.processor.batch "default" {
+    timeout = "2s"
+    send_batch_size = 10000
+    output {
+      metrics = []
+      logs    = [otelcol.exporter.otlphttp.loki.input]
+      traces  = [otelcol.exporter.loadbalancing.default.input]
+    }
+  }
+  otelcol.exporter.loadbalancing "default" {
+    resolver {
+      kubernetes {
+        service = "observability-tail-sampler.alloy"
+        ports   = [ 4317 ]
+      }
+    }
+    protocol {
+      otlp {
+        client {
+          tls {
+            insecure = true
+          }
+        }
+      }
+    }
+  }
+
+  otelcol.exporter.otlphttp "loki" {
+    client {
+      headers = {
+        "X-Scope-OrgID" = env("TENANT_ID"),
+      }
+      endpoint = format("http://%s:%s/otlp", env("LOKI_HOST"), env("LOKI_PORT"))
+    }
+  }

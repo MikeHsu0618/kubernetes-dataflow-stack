@@ -1,0 +1,118 @@
+  logging {
+    level = "info"
+    format = "logfmt"
+  }
+
+  livedebugging {
+    enabled = true
+  }
+
+  otelcol.receiver.otlp "default" {
+    grpc {
+      max_recv_msg_size = "10MiB"
+    }
+
+    output {
+      traces = [
+        otelcol.processor.transform.default.input,
+      ]
+    }
+  }
+
+  otelcol.processor.transform "default" {
+    error_mode = "ignore"
+
+    trace_statements {
+      context = "resource"
+      statements = [
+      ]
+    }
+
+    output {
+      traces  = [
+        otelcol.connector.spanmetrics.default.input,
+        otelcol.processor.tail_sampling.default.input,
+      ]
+    }
+  }
+
+  otelcol.processor.tail_sampling "default" {
+    decision_cache = {
+      sampled_cache_size = 100000,
+    }
+    decision_wait = "10s"
+    policy {
+      name = "test-policy-1"
+      type = "always_sample"
+    }
+
+    output {
+      traces = [
+        otelcol.exporter.otlphttp.tempo.input,
+      ]
+    }
+  }
+
+  otelcol.exporter.otlphttp "tempo" {
+    client {
+      endpoint = format("http://%s", env("TEMPO_HOST"))
+    }
+  }
+
+  otelcol.connector.spanmetrics "default" {
+    histogram {
+      explicit {
+        buckets = ["10ms", "50ms", "100ms", "200ms", "400ms", "800ms", "1s", "1.4s", "2s", "5s", "10s", "15s"]
+      }
+    }
+    metrics_flush_interval = "30s"
+
+    resource_metrics_key_attributes = [
+      "service.name",
+      "span.name",
+      "span.kind",
+      "status.code",
+    ]
+
+    dimension {
+      name = "http.method"
+    }
+    dimension {
+      name = "http.status_code"
+    }
+    dimension {
+      name = "http.response.status_code"
+    }
+    dimension {
+      name = "service.version"
+    }
+    dimension {
+      name = "service.country"
+    }
+    dimension {
+      name = "url.template"
+    }
+
+    exemplars {
+      enabled = true
+      max_per_data_point = 10
+    }
+    output {
+      metrics = [
+        otelcol.exporter.prometheus.default.input,
+      ]
+    }
+  }
+
+  otelcol.exporter.prometheus "default" {
+    forward_to = [prometheus.remote_write.default.receiver]
+  }
+
+  prometheus.remote_write "default" {
+    endpoint {
+      url = "http://kube-prometheus-stack-prometheus.prometheus-thanos.svc.cluster.local:9090/api/v1/write"
+      queue_config {
+        retry_on_http_429 = false
+      }
+    }
+  }
