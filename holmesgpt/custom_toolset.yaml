@@ -1,0 +1,47 @@
+toolsets:
+  grafana/loki:
+    enabled: true
+    description: "Customized Loki Toolset for searching logs"
+    additional_instructions: |
+      When using fetch_loki_logs_for_resource:
+      - For resource_name, use the application name (e.g. 'my-app', not container name)
+      - For namespace, use the Kubernetes namespace (e.g. 'default', 'kube-system')
+      - Example: fetch_loki_logs_for_resource(resource_name="my-app", namespace="default")
+    config:
+      api_key: ""
+      url: http://grafana:3000/ # Your Grafana cloud account URL
+      grafana_datasource_uid: "P8E80F9AEF21F6940"
+      labels:
+        pod: "container"
+        namespace: "container"
+  kubernetes/logs:
+    enabled: false
+  grafana/tempo:
+    enabled: false
+    config:
+      api_key: ""
+      url: http://grafana:3000/ # e.g. https://acme-corp.grafana.net
+      grafana_datasource_uid: "P8E80F9AEF21F6940"
+      labels:
+        pod: "k8s.pod.name"
+        namespace: "k8s.namespace.name"
+        deployment: "k8s.deployment.name"
+        node: "k8s.node.name"
+        service: "service.name"
+  prometheus/metrics:
+    enabled: false
+    config:
+      prometheus_url: http://prometheus:9090
+      metrics_labels_time_window_hrs: 48 # default value
+      metrics_labels_cache_duration_hrs: 12 # default value
+      fetch_labels_with_labels_api: false # default value
+      fetch_metadata_with_series_api: false # default value
+      tool_calls_return_data: false # default value
+  kubernetes/kube-prometheus-stack:
+    enabled: false
+  kubernetes/core:
+    enabled: true
+  kubernetes/live-metrics:
+    enabled: true
+  internet:
+    enabled: true
