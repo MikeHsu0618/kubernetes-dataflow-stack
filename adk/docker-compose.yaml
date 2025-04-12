@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  adk:
+    build: . # Build the image from the Dockerfile in the current directory (adk/)
+    ports:
+      - "8000:8000" # Map host port 8000 to container port 8000
+    volumes:
+      - ./:/app # Mount the parent directory into /app
